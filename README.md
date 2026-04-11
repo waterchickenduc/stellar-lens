@@ -53,8 +53,8 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/youruser/stellar-lens.git ~/claude-stellar
-cd ~/claude-stellar
+git clone https://github.com/youruser/stellar-lens.git ~/stellar-lens
+cd ~/stellar-lens
 ```
 
 ### 2. Create your `.env` file
@@ -159,7 +159,7 @@ podman-compose build --no-cache && \
   podman-compose up -d
 
 # Hot-patch a frontend file (no rebuild needed)
-podman cp ~/claude-stellar/frontend/js/dashboard/overview.js \
+podman cp ~/stellar-lens/frontend/js/dashboard/overview.js \
   stellar-dashboard:/app/frontend/js/dashboard/overview.js
 
 # View live logs
@@ -174,7 +174,7 @@ podman exec -it stellar-dashboard sh
 ## 📁 Project Structure
 
 ```
-~/claude-stellar/
+~/stellar-lens/
 ├── backend/
 │   ├── app.js                  # Express app + route mounting
 │   ├── server.js               # Entry point, starts poller
