@@ -1,0 +1,38 @@
+# ── Dependencies ────────────────────────────────────────────
+node_modules/
+
+# ── Environment & secrets ────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── Database ─────────────────────────────────────────────────
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+
+# ── Temp / task working files ────────────────────────────────
+/tmp/
+claude_scripts/
+
+# ── OS junk ──────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor & IDE ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Podman / container artifacts ─────────────────────────────
+*.pid
+podman-compose.override.yml

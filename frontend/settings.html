@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings — Stellar Lens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/settings.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="/dashboard.html">
+    Stellar Lens
+    <small>Fan Dashboard · Stellar Dominion</small>
+  </a>
+  <span class="navbar-spacer"></span>
+  <a class="navbar-link" href="/dashboard.html">← Back to Dashboard</a>
+</nav>
+
+<div class="settings-layout">
+
+  <aside class="settings-sidebar">
+    <div class="sidebar-group">Game Accounts</div>
+    <a href="#" class="sidebar-link active" data-panel="panel-accounts">Linked Accounts</a>
+
+    <div class="sidebar-group">Profile</div>
+    <a href="#" class="sidebar-link" data-panel="panel-password">Change Password</a>
+    <a href="#" class="sidebar-link" data-panel="panel-email">Change Email</a>
+
+    <div class="sidebar-group">Admin</div>
+    <a href="/admin.html" class="sidebar-link" id="sidebar-admin-link" style="display:none">Admin Panel</a>
+  </aside>
+
+  <main class="settings-main">
+
+    <section id="panel-accounts" class="settings-panel active">
+      <div class="panel-heading">Linked Game Accounts</div>
+      <div id="accounts-list"></div>
+      <button class="btn btn-primary" onclick="accountOpenAdd()" style="margin-top:0.5rem">
+        + Add Account
+      </button>
+    </section>
+
+    <section id="panel-password" class="settings-panel">
+      <div class="panel-heading">Change Password</div>
+      <div class="form-card">
+        <form id="pw-form" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label for="pw-current">Current Password</label>
+            <input type="password" id="pw-current" autocomplete="current-password" required>
+          </div>
+          <div class="form-group">
+            <label for="pw-new">New Password <span class="muted">(min 8 chars)</span></label>
+            <input type="password" id="pw-new" autocomplete="new-password" required minlength="8">
+          </div>
+          <div class="form-group">
+            <label for="pw-confirm">Confirm New Password</label>
+            <input type="password" id="pw-confirm" autocomplete="new-password" required>
+          </div>
+          <div id="pw-error" class="msg-error"></div>
+          <div id="pw-ok"    class="msg-ok"></div>
+          <button type="submit" id="pw-submit" class="btn btn-primary" style="margin-top:1rem">
+            Save Password
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section id="panel-email" class="settings-panel">
+      <div class="panel-heading">Change Email</div>
+      <div class="form-card">
+        <p class="info-row">
+          <span>Current email:</span>
+          <strong id="current-email-display">—</strong>
+        </p>
+        <p class="info-row" style="margin-bottom:1.25rem">
+          <span>Role:</span>
+          <strong id="current-role-display">—</strong>
+        </p>
+        <form id="em-form" autocomplete="off" novalidate>
+          <div class="form-group">
+            <label for="em-new">New Email Address</label>
+            <input type="email" id="em-new" autocomplete="email" required>
+          </div>
+          <div class="form-group">
+            <label for="em-password">Confirm with Current Password</label>
+            <input type="password" id="em-password" autocomplete="current-password" required>
+          </div>
+          <div id="em-error" class="msg-error"></div>
+          <div id="em-ok"    class="msg-ok"></div>
+          <button type="submit" id="em-submit" class="btn btn-primary" style="margin-top:1rem">
+            Send Confirmation
+          </button>
+        </form>
+      </div>
+      <p class="muted" style="font-size:0.8rem">
+        A confirmation link will be sent to your new address. Your email changes after you click it.
+      </p>
+    </section>
+
+  </main>
+</div>
+
+<div id="acc-modal" class="modal-overlay hidden" onclick="if(event.target===this)accountCloseModal()">
+  <div class="modal-box">
+    <h3 id="acc-modal-title">Add Game Account</h3>
+    <div class="form-group">
+      <label for="acc-form-name">Display Name</label>
+      <input type="text" id="acc-form-name"
+             placeholder="My Main Account"
+             style="width:100%"
+             onkeydown="if(event.key==='Enter')accountSave()">
+    </div>
+    <div class="form-group">
+      <label for="acc-form-url">API URL</label>
+      <input type="url" id="acc-form-url"
+             placeholder="https://enoxys.fr/stellar/api/me?token=…"
+             style="width:100%"
+             onkeydown="if(event.key==='Enter')accountSave()">
+    </div>
+    <div id="acc-modal-error" class="msg-error"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="accountCloseModal()">Cancel</button>
+      <button class="btn btn-primary" id="acc-modal-save" onclick="accountSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/toast.js"></script>
+<script src="/js/accounts.js"></script>
+<script src="/js/settings.js"></script>
+<script>
+  if (!getToken()) {
+    window.location.href = '/login.html';
+  } else {
+    initSettings();
+    loadAccounts();
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') accountCloseModal();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stellar Lens — Confirm Email</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    .confirm-icon {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 26px;
+    }
+    .confirm-icon.pending  { background: #1a2028; color: var(--primary); }
+    .confirm-icon.success  { background: #0e2118; color: var(--success); }
+    .confirm-icon.error    { background: #2a1415; color: var(--danger); }
+    .confirm-center { text-align: center; }
+  </style>
+</head>
+<body class="auth-page">
+
+<div class="auth-card confirm-center">
+
+  <div class="auth-logo" style="justify-content:center">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2a10 10 0 1 0 10 10"/>
+      <path d="M12 6V2M6 12H2M12 18v4M18 12h4"/>
+    </svg>
+    <div class="auth-logo-name">Stellar Lens</div>
+  </div>
+
+  <div id="icon" class="confirm-icon pending">⏳</div>
+  <div id="title" class="auth-title" style="margin-bottom:8px">Confirming…</div>
+  <div id="msg"   class="auth-sub">Please wait.</div>
+  <div id="action" style="margin-top:24px"></div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script>
+  const iconEl   = document.getElementById('icon');
+  const titleEl  = document.getElementById('title');
+  const msgEl    = document.getElementById('msg');
+  const actionEl = document.getElementById('action');
+
+  function setSuccess(title, msg) {
+    iconEl.className  = 'confirm-icon success';
+    iconEl.textContent = '✓';
+    titleEl.textContent = title;
+    msgEl.textContent   = msg;
+    actionEl.innerHTML  = '<a href="/index.html" class="btn btn-primary" style="display:inline-flex;text-decoration:none">Go to login</a>';
+  }
+
+  function setError(title, msg) {
+    iconEl.className  = 'confirm-icon error';
+    iconEl.textContent = '✕';
+    titleEl.textContent = title;
+    msgEl.textContent   = msg;
+    actionEl.innerHTML  = '<a href="/index.html" style="color:var(--primary)">Back to login</a>';
+  }
+
+  (async () => {
+    const params = new URLSearchParams(window.location.search);
+    const token  = params.get('token');
+
+    if (!token) {
+      setError('Invalid link', 'No confirmation token found in the URL.');
+      return;
+    }
+
+    try {
+      const data = await API.get('/auth/confirm/' + token, false);
+      setSuccess('Email confirmed!', data.message || 'Your account is active. You can now sign in.');
+    } catch (err) {
+      setError('Confirmation failed', err.message || 'This link may have expired. Try registering again or contact an admin.');
+    }
+  })();
+</script>
+</body>
+</html>

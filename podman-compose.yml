@@ -1,0 +1,27 @@
+# ─────────────────────────────────────────
+#  Stellar Dashboard — podman-compose.yml
+#  Run with: podman-compose up -d
+# ─────────────────────────────────────────
+version: "3.8"
+
+services:
+  stellar:
+    build:
+      context: .
+      dockerfile: Containerfile
+    container_name: stellar-dashboard
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      # Change 8080 to whatever port you want on your VPS
+      - "8000:8000"
+    volumes:
+      # Keeps the SQLite database alive across restarts
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

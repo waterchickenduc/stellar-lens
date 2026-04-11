@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stellar Lens — Login</title>
+  <link rel="stylesheet" href="/css/base.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-card">
+
+  <div class="auth-logo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2a10 10 0 1 0 10 10"/>
+      <path d="M12 6V2M6 12H2M12 18v4M18 12h4"/>
+    </svg>
+    <div>
+      <div class="auth-logo-name">Stellar Lens</div>
+      <div class="auth-logo-sub">Stellar Dominion Analytics</div>
+    </div>
+  </div>
+
+  <div class="auth-title">Sign in</div>
+  <div class="auth-sub">Enter your credentials to access your dashboard.</div>
+
+  <div id="alert" class="alert"></div>
+
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+  </div>
+
+  <div class="field">
+    <label for="password">Password</label>
+    <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+  </div>
+
+  <button id="loginBtn" class="btn btn-primary">
+    <span class="spinner"></span>
+    <span class="btn-label">Sign in</span>
+  </button>
+
+  <div class="auth-footer">
+    No account? <a href="/register.html">Register with invite code</a>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  requireGuest();
+
+  const emailEl = document.getElementById('email');
+  const passEl  = document.getElementById('password');
+  const btn     = document.getElementById('loginBtn');
+  const alert   = document.getElementById('alert');
+
+  async function doLogin() {
+    hideAlert(alert);
+    const email    = emailEl.value.trim();
+    const password = passEl.value;
+
+    if (!email || !password) { showError(alert, 'Please fill in all fields.'); return; }
+
+    setLoading(btn, true);
+    try {
+      const data = await API.post('/auth/login', { email, password }, false);
+      API.setToken(data.token);
+      API.setUser(data.user);
+      window.location.href = '/dashboard.html';
+    } catch (err) {
+      if (err.data && err.data.unconfirmed) {
+        showError(alert, 'Please confirm your email first. Check your inbox.');
+      } else {
+        showError(alert, err.message || 'Login failed.');
+      }
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  btn.addEventListener('click', doLogin);
+  [emailEl, passEl].forEach(el =>
+    el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
+  );
+</script>
+</body>
+</html>

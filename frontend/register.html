@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stellar Lens — Register</title>
+  <link rel="stylesheet" href="/css/base.css">
+</head>
+<body class="auth-page">
+
+<div class="auth-card">
+
+  <div class="auth-logo">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2a10 10 0 1 0 10 10"/>
+      <path d="M12 6V2M6 12H2M12 18v4M18 12h4"/>
+    </svg>
+    <div>
+      <div class="auth-logo-name">Stellar Lens</div>
+      <div class="auth-logo-sub">Stellar Dominion Analytics</div>
+    </div>
+  </div>
+
+  <div class="auth-title">Create account</div>
+  <div class="auth-sub">You need an invite code to register.</div>
+
+  <div id="alert" class="alert"></div>
+
+  <div class="field">
+    <label for="email">Email</label>
+    <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+  </div>
+
+  <div class="field">
+    <label for="password">Password <span style="color:var(--text-muted);font-weight:400">(min. 8 characters)</span></label>
+    <input id="password" type="password" placeholder="••••••••" autocomplete="new-password">
+  </div>
+
+  <div class="field">
+    <label for="password2">Confirm password</label>
+    <input id="password2" type="password" placeholder="••••••••" autocomplete="new-password">
+  </div>
+
+  <div class="field">
+    <label for="invite">Invite code</label>
+    <input id="invite" type="text" placeholder="XXXXXXXX" autocomplete="off"
+           style="text-transform:uppercase;letter-spacing:.1em">
+  </div>
+
+  <button id="regBtn" class="btn btn-primary">
+    <span class="spinner"></span>
+    <span class="btn-label">Create account</span>
+  </button>
+
+  <div class="auth-footer">
+    Already have an account? <a href="/index.html">Sign in</a>
+  </div>
+
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/auth.js"></script>
+<script>
+  requireGuest();
+
+  const emailEl   = document.getElementById('email');
+  const passEl    = document.getElementById('password');
+  const pass2El   = document.getElementById('password2');
+  const inviteEl  = document.getElementById('invite');
+  const btn       = document.getElementById('regBtn');
+  const alertEl   = document.getElementById('alert');
+
+  // Force uppercase on invite input
+  inviteEl.addEventListener('input', () => {
+    const pos = inviteEl.selectionStart;
+    inviteEl.value = inviteEl.value.toUpperCase();
+    inviteEl.setSelectionRange(pos, pos);
+  });
+
+  async function doRegister() {
+    hideAlert(alertEl);
+
+    const email      = emailEl.value.trim();
+    const password   = passEl.value;
+    const password2  = pass2El.value;
+    const inviteCode = inviteEl.value.trim();
+
+    if (!email || !password || !password2 || !inviteCode) {
+      showError(alertEl, 'Please fill in all fields.'); return;
+    }
+    if (password !== password2) {
+      showError(alertEl, 'Passwords do not match.'); return;
+    }
+    if (password.length < 8) {
+      showError(alertEl, 'Password must be at least 8 characters.'); return;
+    }
+
+    setLoading(btn, true);
+    try {
+      const data = await API.post('/auth/register', { email, password, inviteCode }, false);
+      showSuccess(alertEl, data.message || 'Registration successful!');
+
+      if (data.confirmLink) {
+        const note = document.createElement('div');
+        note.style.cssText = 'margin-top:10px;font-size:12px;word-break:break-all;color:#9fd0d8';
+        note.textContent = 'Dev confirm link: ' + data.confirmLink;
+        alertEl.appendChild(note);
+      }
+
+      // Disable form after success
+      [emailEl, passEl, pass2El, inviteEl, btn].forEach(el => el.disabled = true);
+    } catch (err) {
+      showError(alertEl, err.message || 'Registration failed.');
+    } finally {
+      setLoading(btn, false);
+    }
+  }
+
+  btn.addEventListener('click', doRegister);
+</script>
+</body>
+</html>

@@ -1,0 +1,338 @@
+/* ============================================================
+   responsive.css — Stellar Lens
+   Injected into all pages. Overrides base/dashboard/settings/admin.
+   Breakpoints: 900px (tablet), 768px (mobile), 480px (small)
+   ============================================================ */
+
+/* ── SHARED: Box sizing safety ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+/* ── SHARED: Toast position on mobile ──────────────────────── */
+@media (max-width: 768px) {
+  #toast-container {
+    bottom: 1rem;
+    right: 0.75rem;
+    left: 0.75rem;
+  }
+  .toast {
+    min-width: unset;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* ============================================================
+   DASHBOARD (dashboard.html)
+   ============================================================ */
+
+/* Tablet: shrink sidebar */
+@media (max-width: 900px) {
+  .dash-sidebar { width: 180px; }
+}
+
+/* Mobile: sidebar becomes top bar */
+@media (max-width: 768px) {
+  html, body { overflow: auto; height: auto; }
+
+  .dash-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Sidebar → horizontal top bar */
+  .dash-sidebar {
+    width: 100%;
+    height: 52px;
+    flex-direction: row;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0 1rem;
+    flex-shrink: 0;
+    overflow: visible;
+    z-index: 50;
+  }
+
+  .sidebar-brand {
+    border-bottom: none;
+    padding: 0;
+    flex: 1;
+    min-width: 0;
+  }
+  .sidebar-brand-sub { display: none; }
+
+  /* Hide accounts list in top bar */
+  .sidebar-accounts { display: none; }
+
+  /* Footer (cogwheel) stays on right */
+  .sidebar-footer {
+    border-top: none;
+    padding: 0;
+    flex-shrink: 0;
+  }
+
+  /* Dropdown opens downward on mobile */
+  .sidebar-dropdown {
+    bottom: auto;
+    top: calc(100% + 0.5rem);
+    left: auto;
+    right: 0;
+    min-width: 200px;
+  }
+
+  /* Main fills remaining height */
+  .dash-main {
+    flex: 1;
+    overflow: visible;
+    min-width: 0;
+  }
+
+  /* Tab bar: scrollable */
+  .dash-tabbar {
+    overflow-x: auto;
+    padding: 0 0.5rem;
+    height: 44px;
+    gap: 0;
+    /* hide scrollbar but keep scrollable */
+    scrollbar-width: none;
+  }
+  .dash-tabbar::-webkit-scrollbar { display: none; }
+
+  .dash-tab {
+    padding: 0 0.7rem;
+    font-size: 0.82rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    height: 44px;
+  }
+
+  /* Hide pull interval label, keep button */
+  .last-pull-label { display: none; }
+  .pull-btn { padding: 0.35rem 0.7rem; font-size: 0.82rem; }
+  .tabbar-actions { gap: 0.35rem; }
+
+  /* Content: normal scroll */
+  .dash-content {
+    padding: 1rem;
+    overflow-y: visible;
+    height: auto;
+    flex: 1;
+  }
+
+  /* Stat cards: 2 per row */
+  .stat-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+  }
+  .stat-card-value { font-size: 1.15rem; }
+
+  /* All inline grid overrides → stack */
+  [style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables: horizontal scroll */
+  .data-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding: 0 1rem;
+  }
+  .data-table { min-width: 480px; }
+
+  /* Charts */
+  .perf-chart-wrap { max-height: 220px; }
+  .hs-chart-wrap canvas { height: 180px !important; }
+
+  /* Planet pills: wrap */
+  #planet-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-sidebar { height: 48px; }
+  .stat-cards { grid-template-columns: 1fr 1fr; gap: 0.45rem; }
+  .stat-card { padding: 0.75rem 0.85rem; }
+  .stat-card-value { font-size: 1rem; }
+  .stat-card-label { font-size: 0.72rem; }
+  .dash-content { padding: 0.75rem; }
+  .section-heading { font-size: 0.78rem; }
+}
+
+/* ============================================================
+   SETTINGS (settings.html)
+   ============================================================ */
+
+/* Tablet: shrink sidebar */
+@media (max-width: 900px) {
+  .settings-sidebar { width: 170px; }
+  .settings-main { padding: 1.5rem 1.5rem; }
+}
+
+/* Mobile: sidebar → horizontal scrollable nav */
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column;
+    min-height: unset;
+  }
+
+  .settings-sidebar {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+    gap: 0;
+  }
+  .settings-sidebar::-webkit-scrollbar { display: none; }
+
+  /* Hide section group labels on mobile (too wide) */
+  .sidebar-group { display: none; }
+
+  /* Links become horizontal tabs */
+  .sidebar-link {
+    white-space: nowrap;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  .sidebar-link.active {
+    border-left: none;
+    border-bottom-color: var(--primary);
+    background: transparent;
+  }
+  .sidebar-link:hover { background: var(--surface2); }
+
+  /* Main goes full width */
+  .settings-main {
+    flex: 1;
+    padding: 1.25rem 1rem;
+    max-width: 100%;
+  }
+
+  /* Navbar */
+  .navbar { padding: 0 1rem; gap: 1rem; }
+  .navbar-link { font-size: 0.85rem; }
+
+  /* Form cards: full width */
+  .form-card { max-width: 100%; }
+
+  /* Account cards */
+  .account-header { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .account-actions { flex-wrap: wrap; }
+
+  /* Modal: full width on mobile */
+  .modal-box {
+    max-width: 100%;
+    margin: 0 0.5rem;
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar { height: 48px; }
+  .settings-main { padding: 1rem 0.75rem; }
+  .panel-heading { font-size: 0.9rem; }
+  .btn { padding: 0.38rem 0.7rem; font-size: 0.82rem; }
+  .btn-sm { padding: 0.28rem 0.5rem; font-size: 0.8rem; }
+}
+
+/* ============================================================
+   ADMIN (admin.html)
+   ============================================================ */
+
+/* Tablet */
+@media (max-width: 900px) {
+  .admin-body { padding: 20px 16px; }
+  .stats-row { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  /* Topbar */
+  .topbar { padding: 0 1rem; gap: 0.75rem; height: 48px; }
+  .topbar-badge { display: none; }
+  .topbar-user { font-size: 0.78rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Body */
+  .admin-body { padding: 16px 12px; }
+
+  /* Stats: 2 columns */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 22px; }
+
+  /* Section header: stack title + button */
+  .section-header {
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .section-title { font-size: 13px; }
+
+  /* Tables: horizontal scroll */
+  .section { overflow: visible; }
+  .data-table-wrap-outer {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Wrap every table in admin in scroll container */
+  .data-table {
+    min-width: 560px;
+    font-size: 12px;
+  }
+  .data-table th { padding: 8px 12px; }
+  .data-table td { padding: 10px 12px; }
+
+  /* Action row: smaller buttons */
+  .action-row { gap: 4px; }
+  .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+  /* Modal: full width */
+  .modal { max-width: 100%; padding: 20px 16px; }
+  .modal-overlay { padding: 12px; }
+  .modal-actions { flex-direction: column; }
+  .modal-actions .btn-sm { width: 100%; justify-content: center; padding: 8px; font-size: 13px; }
+
+  /* System settings input */
+  #setting-pull-interval { width: 80px; }
+}
+
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-value { font-size: 18px; }
+  .admin-body { padding: 12px 10px; }
+  .topbar-logo span { display: none; } /* hide text, keep icon */
+}
+
+/* ============================================================
+   AUTH PAGES (index/login/register/confirm)
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .auth-card { padding: 28px 20px; }
+  .auth-title { font-size: 18px; }
+}
+
+/* ============================================================
+   UTILITY: wrap all admin tables for horizontal scroll
+   ============================================================ */
+/* Applied via JS snippet added to admin.html */

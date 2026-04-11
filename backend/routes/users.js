@@ -1,0 +1,5 @@
+// routes/users.js — STUB
+'use strict';
+const express = require('express');
+const router  = express.Router();
+module.exports = router;
