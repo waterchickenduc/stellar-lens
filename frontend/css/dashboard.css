@@ -1,12 +1,11 @@
 /* dashboard.css */
 
 /* ── Root layout ─────────────────────────────────────── */
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; }
 
 .dash-layout {
   display: flex;
   height: 100vh;
-  overflow: hidden;
 }
 
 /* ── Sidebar ─────────────────────────────────────────── */

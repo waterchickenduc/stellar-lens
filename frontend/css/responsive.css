@@ -336,3 +336,73 @@
    UTILITY: wrap all admin tables for horizontal scroll
    ============================================================ */
 /* Applied via JS snippet added to admin.html */
+
+/* ── MOBILE SCROLL FIX ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  html, body {
+    height: auto !important;
+    overflow: auto !important;
+    overflow-x: hidden !important;
+  }
+  .dash-layout {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+  }
+  .dash-main {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .dash-content {
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 50vh;
+  }
+}
+
+/* ── MOBILE SCROLL FIX v2 ──────────────────────────────────── */
+@media (max-width: 768px) {
+  html { height: auto !important; overflow-y: auto !important; overflow-x: hidden !important; }
+  body { height: auto !important; overflow: visible !important; }
+
+  .dash-layout {
+    height: auto !important;
+    min-height: 100dvh;
+    overflow: visible !important;
+    flex-direction: column;
+  }
+
+  .dash-sidebar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    overflow: visible !important;
+  }
+
+  .dash-main {
+    flex: 1 !important;
+    height: auto !important;
+    overflow: visible !important;
+    min-height: 0 !important;
+  }
+
+  .dash-tabbar {
+    position: sticky !important;
+    top: 52px !important;
+    z-index: 99 !important;
+    background: var(--surface) !important;
+  }
+
+  .dash-content {
+    flex: 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding-bottom: 3rem !important;
+  }
+
+  .dash-panel.active {
+    display: block !important;
+    overflow: visible !important;
+  }
+}
