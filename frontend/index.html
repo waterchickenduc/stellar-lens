@@ -4,90 +4,328 @@
   <meta charset="UTF-8">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stellar Lens — Login</title>
+  <title>Stellar Lens</title>
   <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    /* Login view centering */
+    #view-login {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    /* Demo banner */
+    .demo-banner {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .demo-banner-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .demo-banner-spacer { flex: 1; }
+    .demo-banner-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .demo-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.55rem;
+      border-radius: 99px;
+      background: rgba(196,154,60,0.15);
+      color: #c49a3c;
+      border: 1px solid rgba(196,154,60,0.3);
+    }
+  </style>
 </head>
-<body class="auth-page">
+<body>
 
-<div class="auth-card">
+<!-- ── DEMO VIEW ───────────────────────────────────────── -->
+<div id="view-demo" style="display:none">
 
-  <div class="auth-logo">
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
-         stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"/>
-      <path d="M12 2a10 10 0 1 0 10 10"/>
-      <path d="M12 6V2M6 12H2M12 18v4M18 12h4"/>
-    </svg>
-    <div>
-      <div class="auth-logo-name">Stellar Lens</div>
-      <div class="auth-logo-sub">Stellar Dominion Analytics</div>
+  <!-- Banner -->
+  <div class="demo-banner">
+    <div class="demo-banner-brand">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+      </svg>
+      <span style="font-weight:600;color:var(--text);font-size:0.9rem">Stellar Lens</span>
+      <span style="color:var(--text-muted);font-size:0.8rem">· Fan Dashboard · Stellar Dominion</span>
+      <span class="demo-badge">Demo</span>
+    </div>
+    <div class="demo-banner-spacer"></div>
+    <div id="demo-meta" style="font-size:0.8rem;color:var(--text-muted)"></div>
+    <div class="demo-banner-actions">
+      <button class="btn btn-sm" onclick="showLoginView()" style="font-size:0.82rem">Sign In</button>
+      <a href="/register.html" style="background:var(--primary);color:#fff;padding:0.35rem 0.85rem;border-radius:var(--radius);font-size:0.82rem;text-decoration:none;white-space:nowrap">
+        Register →
+      </a>
     </div>
   </div>
 
-  <div class="auth-title">Sign in</div>
-  <div class="auth-sub">Enter your credentials to access your dashboard.</div>
-
-  <div id="alert" class="alert"></div>
-
-  <div class="field">
-    <label for="email">Email</label>
-    <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+  <!-- Tabs -->
+  <div class="dash-tabbar" style="position:sticky;top:49px;z-index:99">
+    <div class="dash-tab" data-tab="overview"    onclick="switchTab('overview')">Overview</div>
+    <div class="dash-tab" data-tab="planet"      onclick="switchTab('planet')">Per Planet</div>
+    <div class="dash-tab" data-tab="research"    onclick="switchTab('research')">Research</div>
+    <div class="dash-tab" data-tab="performance" onclick="switchTab('performance')">Performance</div>
+    <div class="dash-tab" data-tab="highscore"   onclick="switchTab('highscore')">Highscore</div>
   </div>
 
-  <div class="field">
-    <label for="password">Password</label>
-    <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+  <!-- Panels -->
+  <div class="dash-content" style="height:auto;overflow:visible;padding:1.75rem 2rem">
+    <div id="demo-loading" style="display:flex;align-items:center;justify-content:center;height:40vh;color:var(--text-muted)">
+      Loading demo...
+    </div>
+    <div id="panel-overview"    class="dash-panel"></div>
+    <div id="panel-planet"      class="dash-panel"></div>
+    <div id="panel-research"    class="dash-panel"></div>
+    <div id="panel-performance" class="dash-panel"></div>
+    <div id="panel-highscore"   class="dash-panel"></div>
   </div>
-
-  <button id="loginBtn" class="btn btn-primary">
-    <span class="spinner"></span>
-    <span class="btn-label">Sign in</span>
-  </button>
-
-  <div class="auth-footer">
-    No account? <a href="/register.html">Register with invite code</a>
-  </div>
-
 </div>
 
+<!-- ── LOGIN VIEW ─────────────────────────────────────── -->
+<div id="view-login" style="display:none">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="10"/>
+        <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-30 12 12)"/>
+        <circle cx="12" cy="12" r="2" fill="currentColor"/>
+      </svg>
+      <div>
+        <div class="auth-logo-name">Stellar Lens</div>
+        <div class="auth-logo-sub">Stellar Dominion Analytics</div>
+      </div>
+    </div>
+    <div class="auth-title">Sign in</div>
+    <div class="auth-sub">Enter your credentials to access your dashboard.</div>
+    <div id="alert" class="alert"></div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="loginBtn" class="btn btn-primary">
+      <span class="spinner"></span>
+      <span class="btn-label">Sign in</span>
+    </button>
+    <div class="auth-footer" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+      <span>No account? <a href="/register.html">Register</a></span>
+      <span id="back-to-demo-wrap" style="display:none">
+        <a href="#" onclick="showDemoView();return false;">← View Demo</a>
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard render scripts -->
 <script src="/js/api.js"></script>
 <script src="/js/auth.js"></script>
+<script src="/js/theme.js"></script>
+<script src="/js/dashboard/overview.js"></script>
+<script src="/js/dashboard/planet.js"></script>
+<script src="/js/dashboard/research.js"></script>
+<script src="/js/dashboard/performance.js"></script>
+<script src="/js/dashboard/highscore.js"></script>
 <script>
-  requireGuest();
+initTheme();
 
-  const emailEl = document.getElementById('email');
-  const passEl  = document.getElementById('password');
-  const btn     = document.getElementById('loginBtn');
-  const alert   = document.getElementById('alert');
+// Shared state required by dashboard render scripts
+var Dash = { snapshot: null, currentAccountId: null };
+var _publicHistory = [];
+var _hasDemoData   = false;
 
-  async function doLogin() {
-    hideAlert(alert);
-    const email    = emailEl.value.trim();
-    const password = passEl.value;
+// fmtNum is used by dashboard render scripts
+function fmtNum(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return Number(n).toLocaleString();
+}
 
-    if (!email || !password) { showError(alert, 'Please fill in all fields.'); return; }
+// apiFetch used by dashboard render scripts
+async function apiFetch(path) {
+  if (path.includes('/history')) return { history: _publicHistory };
+  var r = await fetch(path);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
 
-    setLoading(btn, true);
-    try {
-      const data = await API.post('/auth/login', { email, password }, false);
-      API.setToken(data.token);
-      API.setUser(data.user);
-      window.location.href = '/dashboard.html';
-    } catch (err) {
-      if (err.data && err.data.unconfirmed) {
-        showError(alert, 'Please confirm your email first. Check your inbox.');
-      } else {
-        showError(alert, err.message || 'Login failed.');
-      }
-    } finally {
-      setLoading(btn, false);
-    }
+// Convert raw history to format performance.js expects
+function processHistory(rawHistory) {
+  return (rawHistory || []).map(function(h) {
+    var d    = h.data || {};
+    var cols = d.coloniesData || [];
+    var ore = 0, crystal = 0, helium3 = 0;
+    cols.forEach(function(c) {
+      ore     += (c.production && c.production.ore)     || 0;
+      crystal += (c.production && c.production.crystal) || 0;
+      helium3 += (c.production && c.production.helium3) || 0;
+    });
+    return {
+      fetched_at:           h.fetched_at,
+      production:           { ore: ore, crystal: crystal, helium3: helium3 },
+      globalPoints:         d.globalPoints,
+      economyPoints:        d.economyPoints,
+      researchPoints:       d.researchPoints,
+      militaryPoints:       d.militaryPoints,
+      defensePoints:        d.defensePoints,
+      ranks:                d.ranks,
+      level:                d.level,
+      totalExpeditions:     d.totalExpeditions,
+      totalBattleVictories: d.totalBattleVictories,
+      anomalyLevel:         d.anomalyLevel,
+    };
+  });
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.dash-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  document.querySelectorAll('.dash-panel').forEach(function(p) {
+    p.classList.toggle('active', p.id === 'panel-' + name);
+  });
+  if (Dash.snapshot) renderTab(name);
+}
+
+function renderTab(name) {
+  var d = Dash.snapshot;
+  if (name === 'overview')    renderOverview(d);
+  if (name === 'planet')      renderPlanet(d);
+  if (name === 'research')    renderResearch(d);
+  if (name === 'performance') renderPerformance();
+  if (name === 'highscore')   renderHighscore(d);
+}
+
+function showDemoView() {
+  if (!_hasDemoData) return;
+  document.getElementById('view-login').style.display = 'none';
+  document.getElementById('view-demo').style.display  = 'block';
+}
+
+function showLoginView() {
+  document.getElementById('view-demo').style.display  = 'none';
+  var lv = document.getElementById('view-login');
+  lv.style.display = 'flex';
+  // Show "← View Demo" link only if demo was available
+  if (_hasDemoData) document.getElementById('back-to-demo-wrap').style.display = 'inline';
+}
+
+function timeSince(iso) {
+  var diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (diff < 60)    return diff + 's ago';
+  if (diff < 3600)  return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return new Date(iso).toLocaleDateString();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function boot() {
+  // Already logged in → go straight to dashboard
+  if (getToken && getToken()) {
+    window.location.href = '/dashboard.html';
+    return;
   }
 
-  btn.addEventListener('click', doLogin);
-  [emailEl, passEl].forEach(el =>
-    el.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
-  );
+  // Try to load demo
+  try {
+    var res = await fetch('/api/public/demo');
+    if (!res.ok) { showLoginView(); return; }
+
+    var payload = await res.json();
+    Dash.snapshot  = payload.data;
+    _publicHistory = processHistory(payload.history || []);
+    _hasDemoData   = true;
+
+    var hours = payload.public_history_hours || 1;
+    var hoursLabel = hours === 1 ? '1 hour' : hours === 168 ? '7 days' : hours + ' hours';
+    document.getElementById('demo-meta').innerHTML =
+      'Viewing <strong style="color:var(--text)">' + esc(payload.display_name) + '</strong>' +
+      ' · Updated ' + timeSince(payload.fetched_at) +
+      ' · History: ' + hoursLabel;
+    document.title = payload.display_name + ' — Stellar Lens (Demo)';
+
+    // Show demo view
+    document.getElementById('demo-loading').style.display = 'none';
+    document.getElementById('view-demo').style.display = 'block';
+
+    // Activate overview
+    var firstTab = document.querySelector('.dash-tab[data-tab="overview"]');
+    if (firstTab) firstTab.classList.add('active');
+    var firstPanel = document.getElementById('panel-overview');
+    if (firstPanel) firstPanel.classList.add('active');
+    renderTab('overview');
+
+  } catch(e) {
+    showLoginView();
+  }
+}
+
+// ── Login form ─────────────────────────────────────────
+var emailEl = document.getElementById('email');
+var passEl  = document.getElementById('password');
+var btn     = document.getElementById('loginBtn');
+var alertEl = document.getElementById('alert');
+
+async function doLogin() {
+  hideAlert(alertEl);
+  var email    = emailEl.value.trim();
+  var password = passEl.value;
+  if (!email || !password) { showError(alertEl, 'Please fill in all fields.'); return; }
+  setLoading(btn, true);
+  try {
+    var data = await API.post('/auth/login', { email: email, password: password }, false);
+    API.setToken(data.token);
+    API.setUser(data.user);
+    window.location.href = '/dashboard.html';
+  } catch (err) {
+    if (err.data && err.data.unconfirmed) {
+      showError(alertEl, 'Please confirm your email first. Check your inbox.');
+    } else {
+      showError(alertEl, err.message || 'Login failed.');
+    }
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+btn.addEventListener('click', doLogin);
+[emailEl, passEl].forEach(function(el) {
+  el.addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+});
+
+boot();
 </script>
 </body>
 </html>

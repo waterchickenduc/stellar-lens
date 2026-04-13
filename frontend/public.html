@@ -79,14 +79,28 @@ async function apiFetch(path) {
 // format performance.js expects: {fetched_at, production:{ore,crystal,helium3}}
 function processHistory(rawHistory) {
   return (rawHistory || []).map(function(h) {
-    var cols = (h.data && h.data.coloniesData) || [];
+    var d    = h.data || {};
+    var cols = d.coloniesData || [];
     var ore = 0, crystal = 0, helium3 = 0;
     cols.forEach(function(c) {
       ore     += (c.production && c.production.ore)     || 0;
       crystal += (c.production && c.production.crystal) || 0;
       helium3 += (c.production && c.production.helium3) || 0;
     });
-    return { fetched_at: h.fetched_at, production: { ore: ore, crystal: crystal, helium3: helium3 } };
+    return {
+      fetched_at:           h.fetched_at,
+      production:           { ore: ore, crystal: crystal, helium3: helium3 },
+      globalPoints:         d.globalPoints,
+      economyPoints:        d.economyPoints,
+      researchPoints:       d.researchPoints,
+      militaryPoints:       d.militaryPoints,
+      defensePoints:        d.defensePoints,
+      ranks:                d.ranks,
+      level:                d.level,
+      totalExpeditions:     d.totalExpeditions,
+      totalBattleVictories: d.totalBattleVictories,
+      anomalyLevel:         d.anomalyLevel,
+    };
   });
 }
 
