@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stellar Lens — Shared Profile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="public-banner" style="background:var(--surface);border-bottom:1px solid var(--border);padding:0.6rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+  <div style="display:flex;align-items:center;gap:0.5rem">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><ellipse cx="12" cy="12" rx="10" ry="4"/><line x1="2" y1="12" x2="22" y2="12"/>
+    </svg>
+    <span style="font-weight:600;color:var(--text);font-size:0.9rem">Stellar Lens</span>
+    <span style="color:var(--text-muted);font-size:0.8rem">· Fan Dashboard · Stellar Dominion</span>
+  </div>
+  <div style="flex:1"></div>
+  <div id="banner-meta" style="font-size:0.8rem;color:var(--text-muted)"></div>
+  <a href="/register.html" style="background:var(--primary);color:#fff;padding:0.35rem 0.85rem;border-radius:var(--radius);font-size:0.82rem;text-decoration:none;white-space:nowrap">
+    Track your own empire →
+  </a>
+</div>
+
+<div class="dash-tabbar" style="position:sticky;top:0;z-index:99">
+  <div class="dash-tab active" data-tab="overview"    onclick="switchTab('overview')">Overview</div>
+  <div class="dash-tab"        data-tab="planet"      onclick="switchTab('planet')">Per Planet</div>
+  <div class="dash-tab"        data-tab="research"    onclick="switchTab('research')">Research</div>
+  <div class="dash-tab"        data-tab="performance" onclick="switchTab('performance')">Performance</div>
+  <div class="dash-tab"        data-tab="highscore"   onclick="switchTab('highscore')">Highscore</div>
+</div>
+
+<div class="dash-content" style="height:auto;overflow:visible;padding:1.75rem 2rem">
+  <div id="pub-loading" style="display:flex;align-items:center;justify-content:center;height:40vh;color:var(--text-muted)">Loading…</div>
+  <div id="pub-error"   style="display:none;text-align:center;padding:3rem;color:var(--danger)"></div>
+  <div id="panel-overview"    class="dash-panel"></div>
+  <div id="panel-planet"      class="dash-panel"></div>
+  <div id="panel-research"    class="dash-panel"></div>
+  <div id="panel-performance" class="dash-panel"></div>
+  <div id="panel-highscore"   class="dash-panel"></div>
+</div>
+
+<script src="/js/dashboard/overview.js"></script>
+<script src="/js/dashboard/planet.js"></script>
+<script src="/js/dashboard/research.js"></script>
+<script src="/js/dashboard/performance.js"></script>
+<script src="/js/dashboard/highscore.js"></script>
+
+<script>
+const Dash = { snapshot: null, currentAccountId: null };
+
+function fmtNum(n) {
+  if (n == null || isNaN(n)) return '—';
+  if (Math.abs(n) >= 1e9) return (n/1e9).toFixed(2)+'B';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(2)+'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(1)+'K';
+  return Number(n).toLocaleString();
+}
+
+async function apiFetch(path) {
+  if (path.includes('/history')) return { history: [] };
+  const r = await fetch(path);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.dash-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.dash-panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  if (Dash.snapshot) renderTab(name);
+}
+
+function renderTab(name) {
+  const d = Dash.snapshot;
+  if (name === 'overview')    renderOverview(d);
+  if (name === 'planet')      renderPlanet(d);
+  if (name === 'research')    renderResearch(d);
+  if (name === 'performance') renderPerformance(d);
+  if (name === 'highscore')   renderHighscore(d);
+}
+
+async function init() {
+  const token = new URLSearchParams(window.location.search).get('t');
+  if (!token) { showError('No share token provided.'); return; }
+  try {
+    const res = await fetch(`/api/public/${token}`);
+    if (!res.ok) {
+      const e = await res.json();
+      showError(e.error || 'Share link not found or has been disabled.');
+      return;
+    }
+    const payload = await res.json();
+    Dash.snapshot = payload.data;
+    const ago = timeSincePublic(payload.fetched_at);
+    document.getElementById('banner-meta').innerHTML =
+      `Viewing <strong style="color:var(--text)">${esc(payload.display_name)}</strong> · Last updated ${ago}`;
+    document.title = `${payload.display_name} — Stellar Lens`;
+    document.getElementById('pub-loading').style.display = 'none';
+    document.getElementById('panel-overview').classList.add('active');
+    renderTab('overview');
+  } catch(e) {
+    showError('Failed to load: ' + e.message);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('pub-loading').style.display = 'none';
+  const el = document.getElementById('pub-error');
+  el.style.display = 'block';
+  el.innerHTML = `<div style="font-size:1.1rem;margin-bottom:0.5rem">⚠ ${esc(msg)}</div>
+    <a href="/register.html" style="color:var(--primary)">Create your own dashboard →</a>`;
+}
+
+function timeSincePublic(iso) {
+  const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+  if (diff < 60)    return `${diff}s ago`;
+  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+</body>
+</html>

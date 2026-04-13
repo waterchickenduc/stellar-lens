@@ -43,6 +43,9 @@ function renderAccountCard(acc) {
             ${acc.is_active ? 'Pause' : 'Resume'}
           </button>
           <button class="btn btn-sm btn-primary" onclick="accountOpenEdit(${acc.id})">Edit</button>
+          <button class="btn btn-sm" onclick="accountToggleShare(${acc.id}, ${JSON.stringify(!!(acc.public_token))})" style="border-color:${acc.public_token ? 'var(--success)' : 'var(--border)'};color:${acc.public_token ? 'var(--success)' : 'var(--text-muted)'}">
+            ${acc.public_token ? '🔗 Shared' : '🔗 Share'}
+          </button>
           <button class="btn btn-sm btn-danger"  onclick="accountDelete(${acc.id})">Delete</button>
         </div>
       </div>
@@ -55,6 +58,12 @@ function renderAccountCard(acc) {
         <span>${lastFetched}</span>
         ${errorHtml}
       </div>
+      ${acc.public_token ? `
+      <div class="account-meta">
+        <span class="muted">Public URL:</span>
+        <span class="account-url">${window.location.origin}/public.html?t=${acc.public_token}</span>
+        <button class="btn btn-sm" style="padding:0.15rem 0.5rem;font-size:0.75rem" onclick="copyShareUrl('${window.location.origin}/public.html?t=${acc.public_token}')">Copy</button>
+      </div>` : ''}
     </div>`;
 }
 
@@ -160,6 +169,31 @@ async function accountSave() {
     saveBtn.disabled = false;
     saveBtn.textContent = 'Save';
   }
+}
+
+
+async function accountToggleShare(id, isCurrentlyShared) {
+  try {
+    if (isCurrentlyShared) {
+      if (!confirm('Revoke this public link? Anyone with the link will lose access.')) return;
+      await apiFetch(`/api/accounts/${id}/share`, { method: 'DELETE' });
+      showToast('Public link revoked.', 'success');
+    } else {
+      await apiFetch(`/api/accounts/${id}/share`, { method: 'POST' });
+      showToast('Public link created!', 'success');
+    }
+    await loadAccounts();
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+function copyShareUrl(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    showToast('Link copied to clipboard!', 'success');
+  }).catch(() => {
+    prompt('Copy this link:', url);
+  });
 }
 
 function timeSince(iso) {

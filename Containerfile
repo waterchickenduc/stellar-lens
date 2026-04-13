@@ -19,6 +19,9 @@ RUN npm install --omit=dev
 # Copy backend source
 COPY backend/ ./
 
+# Force nodemailer to patched version
+RUN node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json'));p.dependencies.nodemailer='8.0.5';fs.writeFileSync('package.json',JSON.stringify(p,null,2));" && npm install nodemailer@8.0.5
+
 # Copy frontend (served as static files by Express)
 COPY frontend/ ./frontend/
 

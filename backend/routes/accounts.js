@@ -107,3 +107,20 @@ router.get('/:id/snapshots/:sid', requireAuth, (req, res) => {
 });
 
 module.exports = router;
+
+/* POST /api/accounts/:id/share — enable public sharing */
+router.post('/:id/share', requireAuth, (req, res) => {
+  const account = getOwned(req.params.id, req.user.id);
+  if (!account) return res.status(404).json({ error: 'Account not found' });
+  const token = require('crypto').randomBytes(16).toString('hex');
+  db.prepare('UPDATE game_accounts SET public_token = ? WHERE id = ?').run(token, req.params.id);
+  res.json({ public_token: token });
+});
+
+/* DELETE /api/accounts/:id/share — revoke public sharing */
+router.delete('/:id/share', requireAuth, (req, res) => {
+  const account = getOwned(req.params.id, req.user.id);
+  if (!account) return res.status(404).json({ error: 'Account not found' });
+  db.prepare('UPDATE game_accounts SET public_token = NULL WHERE id = ?').run(req.params.id);
+  res.json({ ok: true });
+});

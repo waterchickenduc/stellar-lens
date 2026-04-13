@@ -22,6 +22,7 @@ app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/accounts', require('./routes/accounts'));
 app.use('/api/accounts', require('./routes/history'));
 app.use('/api/admin',    require('./routes/admin'));
+app.use('/api/public',   require('./routes/public'));
 
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api/')) {
