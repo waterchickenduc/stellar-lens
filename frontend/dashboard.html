@@ -2,19 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stellar Lens</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/responsive.css">
 </head>
 <body>
 <div class="dash-layout">
-
-  <!-- ── Sidebar ──────────────────────────────────────── -->
   <aside class="dash-sidebar">
-
     <div class="sidebar-brand">
       <div class="sidebar-brand-name">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -26,18 +25,11 @@
       </div>
       <div class="sidebar-brand-sub">Fan Dashboard · Stellar Dominion</div>
     </div>
-
-
-
     <div class="sidebar-accounts">
       <div class="sidebar-section-label">Active Accounts</div>
       <div id="sidebar-accounts"></div>
     </div>
-
-    <div class="sidebar-footer">
-      
-    </div>
-
+    <div class="sidebar-footer"></div>
     <div class="sidebar-footer">
       <div class="sidebar-cogwheel-wrap" id="cogwheel-wrap">
         <button class="sidebar-cogwheel-btn" id="cogwheel-btn" onclick="toggleSidebarMenu()" title="Menu">⚙</button>
@@ -45,14 +37,11 @@
           <div class="dropdown-section">Navigation</div>
           <a href="/settings.html">⚙ Settings</a>
           <a href="/settings.html#panel-accounts">🔗 Linked Accounts</a>
-
           <div class="dropdown-section">Profile</div>
           <a href="/settings.html#panel-password">🔑 Change Password</a>
           <a href="/settings.html#panel-email">✉ Change Email</a>
-
           <div class="dropdown-section" id="admin-section" style="display:none">Admin</div>
           <a href="/admin.html" id="admin-dropdown-link" style="display:none">🛡 Admin Panel</a>
-
           <div class="dropdown-divider"></div>
           <button class="theme-toggle-btn" onclick="toggleTheme();updateThemeLabel()">☀ Light mode</button>
           <button class="danger" onclick="doLogout()">⏻ Sign Out</button>
@@ -61,10 +50,7 @@
     </div>
   </aside>
 
-  <!-- ── Main ─────────────────────────────────────────── -->
   <div class="dash-main">
-
-    <!-- Tab bar -->
     <div class="dash-tabbar">
       <div class="dash-tab active" data-tab="overview">Overview</div>
       <div class="dash-tab" data-tab="planet">Per Planet</div>
@@ -74,6 +60,17 @@
       <div class="tabbar-spacer"></div>
       <div class="tabbar-actions">
         <span class="last-pull-label" id="last-pull-label"></span>
+        <button class="share-tab-btn" id="share-tab-btn"
+                onclick="openShareModal()"
+                title="Share this dashboard publicly"
+                style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          Share
+        </button>
         <button class="pull-btn" id="pull-btn">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -83,8 +80,6 @@
         </button>
       </div>
     </div>
-
-    <!-- Content panels -->
     <div class="dash-content">
       <div id="panel-overview"    class="dash-panel active"></div>
       <div id="panel-planet"      class="dash-panel"></div>
@@ -92,7 +87,42 @@
       <div id="panel-performance" class="dash-panel"></div>
       <div id="panel-highscore"   class="dash-panel"></div>
     </div>
+  </div>
+</div>
 
+<!-- Share Modal -->
+<div id="share-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeShareModal()">
+  <div class="modal-box share-modal-box">
+    <div class="modal-header">
+      <span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:0.3rem">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+        </svg>
+        Share Dashboard
+      </span>
+      <button class="modal-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="share-status-section" style="margin-bottom:1.25rem"></div>
+
+      <div class="share-tabs-section">
+        <div class="share-tabs-label">Visible tabs for visitors</div>
+        <div id="share-tabs-list"></div>
+      </div>
+
+      <div class="share-tabs-section" style="margin-top:0.75rem">
+        <div class="share-tabs-label">Performance history shown to visitors</div>
+        <select id="share-history-select" class="share-history-select"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="share-btn-generate" onclick="shareGenerate()">🔗 Generate Link</button>
+      <button class="btn btn-primary" id="share-btn-save"     onclick="shareSave()">Save Preferences</button>
+      <button class="btn btn-danger"  id="share-btn-revoke"   onclick="shareRevoke()">Revoke Link</button>
+      <button class="btn"             onclick="closeShareModal()">Close</button>
+    </div>
   </div>
 </div>
 
@@ -106,51 +136,35 @@
 <script src="/js/dashboard/research.js"></script>
 <script src="/js/dashboard/performance.js"></script>
 <script src="/js/dashboard/highscore.js"></script>
+<script src="/js/dashboard/share.js"></script>
 <script>
-
-  // Boot dashboard
   dashInit();
-</script>
-
-<script>
   function toggleSidebarMenu() {
-    const btn = document.getElementById('cogwheel-btn');
-    const dd  = document.getElementById('sidebar-dropdown');
-    if (!btn || !dd) return;
-    btn.classList.toggle('open');
-    dd.classList.toggle('open');
+    document.getElementById('cogwheel-btn').classList.toggle('open');
+    document.getElementById('sidebar-dropdown').classList.toggle('open');
   }
-
-  document.addEventListener('click', e => {
-    const wrap = document.getElementById('cogwheel-wrap');
+  document.addEventListener('click', function(e) {
+    var wrap = document.getElementById('cogwheel-wrap');
     if (wrap && !wrap.contains(e.target)) {
-      document.getElementById('cogwheel-btn')?.classList.remove('open');
-      document.getElementById('sidebar-dropdown')?.classList.remove('open');
+      document.getElementById('cogwheel-btn').classList.remove('open');
+      document.getElementById('sidebar-dropdown').classList.remove('open');
     }
   });
-
-  function doLogout() {
-    clearSession();
-    window.location.href = '/index.html';
-  }
-
+  function doLogout() { clearSession(); window.location.href = '/index.html'; }
   function updateThemeLabel() {
-    const theme = localStorage.getItem('stellar_theme') || 'dark';
-    document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+    var theme = localStorage.getItem('stellar_theme') || 'dark';
+    document.querySelectorAll('.theme-toggle-btn').forEach(function(btn) {
       btn.textContent = theme === 'light' ? '🌙 Dark mode' : '☀ Light mode';
     });
   }
-
-  const _cu = getUser();
+  var _cu = getUser();
   if (_cu && _cu.role === 'admin') {
-    const al  = document.getElementById('admin-dropdown-link');
-    const as_ = document.getElementById('admin-section');
-    if (al)  al.style.display  = 'block';
+    var al = document.getElementById('admin-dropdown-link');
+    var as_ = document.getElementById('admin-section');
+    if (al) al.style.display = 'block';
     if (as_) as_.style.display = 'block';
   }
-
   updateThemeLabel();
 </script>
-
 </body>
 </html>

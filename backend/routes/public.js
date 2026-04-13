@@ -3,7 +3,8 @@ const express = require('express');
 const router  = express.Router();
 const db      = require('../db');
 
-/* GET /public/:token — no auth required */
+const ALL_TABS = ['overview', 'planet', 'research', 'performance', 'highscore'];
+
 router.get('/:token', (req, res) => {
   const account = db.prepare(
     'SELECT * FROM game_accounts WHERE public_token = ? AND is_active = 1'
@@ -15,10 +16,34 @@ router.get('/:token', (req, res) => {
   ).get(account.id);
   if (!row) return res.status(404).json({ error: 'No data available yet' });
 
+  // Allowed tabs
+  let allowed_tabs = ALL_TABS;
+  if (account.public_tabs) {
+    try {
+      const parsed = JSON.parse(account.public_tabs);
+      if (Array.isArray(parsed) && parsed.length)
+        allowed_tabs = parsed.filter(t => ALL_TABS.includes(t));
+    } catch (_) {}
+  }
+
+  // History snapshots for performance graphs
+  const hours = account.public_history_hours || 1;
+  const since = new Date(Date.now() - hours * 3600 * 1000).toISOString();
+  const historyRows = db.prepare(
+    'SELECT fetched_at, raw_json FROM snapshots WHERE account_id = ? AND fetched_at >= ? ORDER BY fetched_at ASC'
+  ).all(account.id, since);
+  const history = historyRows.map(r => ({
+    fetched_at: r.fetched_at,
+    data:       JSON.parse(r.raw_json),
+  }));
+
   res.json({
-    display_name: account.display_name,
-    fetched_at:   row.fetched_at,
-    data:         JSON.parse(row.raw_json),
+    display_name:         account.display_name,
+    fetched_at:           row.fetched_at,
+    allowed_tabs,
+    public_history_hours: hours,
+    data:                 JSON.parse(row.raw_json),
+    history,
   });
 });
 

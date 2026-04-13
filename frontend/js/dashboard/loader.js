@@ -1,13 +1,12 @@
 /* loader.js — account switcher, snapshot loader, shared state */
 
 const Dash = {
-  accounts:        [],
+  accounts:         [],
   currentAccountId: null,
-  snapshot:        null,   // latest parsed snapshot
-  activeTab:       'overview',
+  snapshot:         null,
+  activeTab:        'overview',
 };
 
-/* ── Boot ──────────────────────────────────────────── */
 async function dashInit() {
   if (!getToken()) { window.location.href = '/login.html'; return; }
   initTheme();
@@ -16,7 +15,6 @@ async function dashInit() {
   dashInitPullBtn();
 }
 
-/* ── Accounts sidebar ──────────────────────────────── */
 async function dashLoadAccounts() {
   try {
     Dash.accounts = await apiFetch('/api/accounts');
@@ -24,8 +22,6 @@ async function dashLoadAccounts() {
     Dash.accounts = [];
   }
   renderSidebarAccounts();
-
-  // Auto-select first active account
   const first = Dash.accounts.find(a => a.is_active) || Dash.accounts[0];
   if (first) dashSelectAccount(first.id);
 }
@@ -62,14 +58,20 @@ async function dashSelectAccount(id) {
   const btn = document.getElementById(`acc-btn-${id}`);
   if (btn) btn.classList.add('active');
 
+  // Show share button and update its appearance
+  const shareBtn = document.getElementById('share-tab-btn');
+  if (shareBtn) {
+    shareBtn.style.display = 'inline-flex';
+    const acc = Dash.accounts.find(a => a.id === id);
+    shareBtn.classList.toggle('is-shared', !!(acc && acc.public_token));
+  }
+
   await dashLoadSnapshot();
 }
 
-/* ── Snapshot loading ──────────────────────────────── */
 async function dashLoadSnapshot() {
   const id = Dash.currentAccountId;
   if (!id) return;
-
   showTabLoading();
   try {
     const data = await apiFetch(`/api/accounts/${id}/snapshot`);
@@ -81,7 +83,6 @@ async function dashLoadSnapshot() {
   }
 }
 
-/* ── Pull button ───────────────────────────────────── */
 function dashInitPullBtn() {
   const btn = document.getElementById('pull-btn');
   if (!btn) return;
@@ -111,12 +112,9 @@ function updateLastPull() {
   const el = document.getElementById('last-pull-label');
   if (!el) return;
   const acc = Dash.accounts.find(a => a.id === Dash.currentAccountId);
-  if (acc && acc.last_fetched) {
-    el.textContent = timeSince(acc.last_fetched);
-  }
+  if (acc && acc.last_fetched) el.textContent = timeSince(acc.last_fetched);
 }
 
-/* ── Tab switching ─────────────────────────────────── */
 function dashInitTabs() {
   document.querySelectorAll('.dash-tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -135,17 +133,15 @@ function dashInitTabs() {
 function dashRenderActive() {
   if (!Dash.snapshot) return;
   const d = Dash.snapshot;
-
   switch (Dash.activeTab) {
     case 'overview':    renderOverview(d);    break;
     case 'planet':      renderPlanet(d);      break;
-    case 'performance': renderPerformance(); break;
+    case 'performance': renderPerformance();  break;
     case 'research':    renderResearch(d);    break;
     case 'highscore':   renderHighscore(d);   break;
   }
 }
 
-/* ── Helpers ───────────────────────────────────────── */
 function showTabLoading() {
   document.querySelectorAll('.dash-panel').forEach(p => {
     p.innerHTML = '<div class="tab-loading">Loading…</div>';
