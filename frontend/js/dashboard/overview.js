@@ -78,7 +78,7 @@ async function renderOverview(d) {
     ${perPlanetTable(cols, BUILDING_ORDER, 'buildings', 'Building', 'avg')}
 
     <div class="section-heading">Defenses per Planet</div>
-    ${perPlanetTable(cols, DEFENSE_ORDER, 'defenses', 'Defense', 'total')}
+    ${perPlanetTable(cols, DEFENSE_ORDER, 'defenses', 'Defense', 'avg')}
 
     <div class="section-heading">Fleet Distribution per Planet</div>
     ${fleetTable(cols)}
@@ -169,10 +169,11 @@ function fleetTable(cols) {
       total+=v;
       return `<td class="num">${v>0 ? v.toLocaleString() : '<span class="dim">—</span>'}</td>`;
     }).join('');
-    return `<tr><td>${label}</td>${cells}<td class="num" style="color:var(--accent);font-weight:600">${total.toLocaleString()}</td></tr>`;
+    const avg = cols.length ? Math.round(total/cols.length) : 0;
+    return `<tr><td>${label}</td>${cells}<td class="num" style="color:var(--accent);font-weight:600">${avg > 0 ? avg.toLocaleString() : '—'}</td></tr>`;
   }).join('');
   return `<div class="data-table-wrap"><table class="data-table">
-    <thead><tr><th>Ship</th>${header}<th class="num" style="color:var(--accent)">Total</th></tr></thead>
+    <thead><tr><th>Ship</th>${header}<th class="num" style="color:var(--accent)">Avg</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
 }

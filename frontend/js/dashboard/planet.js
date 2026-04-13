@@ -22,9 +22,9 @@ const BUILDING_GROUPS = [
     ['fusion_reactor','Fusion Reactor',null],
   ]},
   { label:'Storage', items:[
-    ['ore_storage','Metal Storage',20],
-    ['crystal_storage','Crystal Storage',20],
-    ['helium3_tank','Deut Storage',20],
+    ['ore_storage','Metal Storage',30],
+    ['crystal_storage','Crystal Storage',30],
+    ['helium3_tank','Deut Storage',30],
   ]},
 ];
 
@@ -88,12 +88,17 @@ function renderPlanet(d) {
   const hel  = col.production?.helium3 || 0;
   const pct  = (v,t) => t>0 ? ((v/t)*100).toFixed(1) : '0.0';
 
-  // Flatten all buildings for chart
-  const allBuildings = BUILDING_GROUPS.flatMap(g => g.items)
-    .filter(([k]) => (col.buildings||{})[k] != null);
-  const buildingLabels = allBuildings.map(([,label]) => label);
-  const buildingValues = allBuildings.map(([k]) => col.buildings[k]||0);
-  const buildingColors = allBuildings.map(([,, max]) => max ? '#4f98a3' : '#4fa36e');
+  // Flatten all buildings for chart — color per category
+  const CATEGORY_COLORS = {
+    'Infrastructure': '#4f98a3',
+    'Mines':          '#4fa36e',
+    'Energy':         '#c49a3c',
+    'Storage':        '#9f7fd4',
+  };
+  const allBuildings = BUILDING_GROUPS.flatMap(g => g.items.map(item => ({ ...item, _cat: g.label })));
+  const buildingLabels = allBuildings.map(b => b[1]);
+  const buildingValues = allBuildings.map(b => col.buildings?.[b[0]] || 0);
+  const buildingColors = allBuildings.map(b => CATEGORY_COLORS[b._cat] || '#7a7975');
 
   // Defense entries
   const defEntries = P_DEFENSE_ORDER.filter(([k]) => (col.defenses?.[k]||0)>0);
@@ -136,7 +141,7 @@ function renderPlanet(d) {
     <!-- Buildings: chart + table side by side -->
     <div class="section-heading">Buildings</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;align-items:start">
-      <div class="perf-chart-wrap" style="max-height:320px">
+      <div class="perf-chart-wrap" style="height:${Math.max(180, allBuildings.length * 36)}px;max-height:none">
         <canvas id="p-chart-buildings"></canvas>
       </div>
       <div>${renderBuildingGroups(col.buildings||{})}</div>
@@ -146,7 +151,7 @@ function renderPlanet(d) {
     <div class="section-heading">Defenses</div>
     ${defEntries.length ? `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;align-items:start">
-      <div class="perf-chart-wrap" style="max-height:280px">
+      <div class="perf-chart-wrap" style="height:${Math.max(180, defEntries.length * 36)}px;max-height:none">
         <canvas id="p-chart-defense"></canvas>
       </div>
       <div>${renderOrderedTable(col.defenses||{}, P_DEFENSE_ORDER, 'Count')}</div>
@@ -156,7 +161,7 @@ function renderPlanet(d) {
     <div class="section-heading">Ships</div>
     ${shipEntries.length ? `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;align-items:start">
-      <div class="perf-chart-wrap" style="max-height:280px">
+      <div class="perf-chart-wrap" style="height:${Math.max(180, shipEntries.length * 36)}px;max-height:none">
         <canvas id="p-chart-fleet"></canvas>
       </div>
       <div>${renderOrderedTable(col.ships||{}, P_SHIP_ORDER, 'Count')}</div>
@@ -225,26 +230,31 @@ function renderPlanet(d) {
       });
     }
 
-    // Fleet — doughnut
+    // Fleet — horizontal bar (matches table order)
     destroyPChart('fleet');
     const ctxF = document.getElementById('p-chart-fleet');
     if (ctxF && shipEntries.length) {
       _pCharts['fleet'] = new Chart(ctxF, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
           labels: shipEntries.map(([,l])=>l),
-          datasets: [{ data: shipEntries.map(([k])=>col.ships[k]||0), backgroundColor:PALETTE, borderWidth:0 }],
+          datasets: [{ data: shipEntries.map(([k])=>col.ships[k]||0), backgroundColor:'#4f98a3cc', borderWidth:0, borderRadius:3 }],
         },
         options: {
+          indexAxis: 'y',
           responsive: true,
-          maintainAspectRatio: true,
+          maintainAspectRatio: false,
           plugins: {
-            legend: { position:'right', labels:{ color:'#7a7975', boxWidth:10, font:{size:10}, padding:6 } },
+            legend: { display:false },
             tooltip: {
               backgroundColor:'#1c1b19', borderColor:'#2e2d2a', borderWidth:1,
               titleColor:'#cdccca', bodyColor:'#9fd0d8',
-              callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString()}` },
+              callbacks: { label: ctx => ` ${ctx.parsed.x.toLocaleString()}` },
             },
+          },
+          scales: {
+            x: { ticks:{ color:'#7a7975', font:{size:9}, callback:v=>fmtNum(v) }, grid:{ color:'#2e2d2a' } },
+            y: { ticks:{ color:'#cdccca', font:{size:9} }, grid:{ display:false } },
           },
         },
       });
