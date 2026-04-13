@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Stellar Lens — Offline</title>
+  <link rel="stylesheet" href="/css/base.css">
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+    .offline-card {
+      max-width: 360px;
+    }
+    .offline-icon {
+      margin-bottom: 1.5rem;
+      opacity: 0.4;
+    }
+    .offline-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+    .offline-sub {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .offline-btn {
+      display: inline-block;
+      padding: 0.6rem 1.5rem;
+      background: var(--primary);
+      color: #fff;
+      border-radius: var(--radius);
+      text-decoration: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .offline-btn:hover { opacity: 0.85; }
+  </style>
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Stellar Lens">
+  <link rel="apple-touch-icon" href="/icons/icon-180.png">
+</head>
+<body>
+<div class="offline-card">
+  <div class="offline-icon">
+    <svg width="72" height="72" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.2">
+      <circle cx="12" cy="12" r="10"/>
+      <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-30 12 12)"/>
+      <circle cx="12" cy="12" r="2" fill="var(--primary)" stroke="none"/>
+    </svg>
+  </div>
+  <div class="offline-title">You're offline</div>
+  <div class="offline-sub">
+    Stellar Lens can't reach the server right now.<br>
+    Check your connection and try again.
+  </div>
+  <button class="offline-btn" onclick="window.location.reload()">Try again</button>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+</script>
+</body>
+</html>
