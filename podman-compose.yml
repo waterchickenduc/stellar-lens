@@ -9,13 +9,13 @@ services:
     build:
       context: .
       dockerfile: Containerfile
-    container_name: stellar-dashboard
+    container_name: stellar-lens
     restart: unless-stopped
     env_file:
       - .env
     ports:
       # Change 8080 to whatever port you want on your VPS
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     volumes:
       # Keeps the SQLite database alive across restarts
       - ./data:/app/data
