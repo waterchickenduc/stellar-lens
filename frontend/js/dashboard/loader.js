@@ -67,6 +67,7 @@ async function dashSelectAccount(id) {
   }
 
   await dashLoadSnapshot();
+  await updateLastPull();
 }
 
 async function dashLoadSnapshot() {
@@ -77,7 +78,6 @@ async function dashLoadSnapshot() {
     const data = await apiFetch(`/api/accounts/${id}/snapshot`);
     Dash.snapshot = data.data;
     dashRenderActive();
-    updateLastPull();
   } catch (e) {
     showTabError(e.message);
   }
@@ -96,6 +96,7 @@ function dashInitPullBtn() {
       showToast('Pull triggered — refreshing in 3s…', 'success');
       setTimeout(async () => {
         await dashLoadSnapshot();
+        await updateLastPull();
         renderSidebarAccounts();
         btn.disabled = false;
         btn.classList.remove('spinning');
@@ -108,11 +109,51 @@ function dashInitPullBtn() {
   });
 }
 
-function updateLastPull() {
+// Calls the status endpoint and renders both fetchedAt + lastSeen
+// with a stale warning if data is older than 30 minutes
+async function updateLastPull() {
   const el = document.getElementById('last-pull-label');
   if (!el) return;
-  const acc = Dash.accounts.find(a => a.id === Dash.currentAccountId);
-  if (acc && acc.last_fetched) el.textContent = timeSince(acc.last_fetched);
+  const id = Dash.currentAccountId;
+  if (!id) { el.innerHTML = ''; return; }
+
+  try {
+    const status = await apiFetch(`/api/snapshots/status/${id}`);
+
+    const fetchedStr  = status.fetchedAt ? timeSince(status.fetchedAt) : 'never';
+    const lastSeenStr = status.lastSeen  ? timeSince(status.lastSeen)  : 'unknown';
+
+    // Build the label — two lines of info
+    let html = `<span class="pull-fetched-at" title="When our poller last pulled the API">
+                  ↻ Pulled ${fetchedStr}
+                </span>
+                <span class="pull-separator">·</span>
+                <span class="pull-last-seen" title="When you were last active in-game">
+                  🎮 In-game ${lastSeenStr}
+                </span>`;
+
+    // Stale warning badge
+    if (status.isStale) {
+      html += `<span class="pull-stale-badge" title="${escHtml(status.staleReason || 'Data may be outdated')}">
+                 ⚠ Stale
+               </span>`;
+    }
+
+    // Error badge if last pull failed
+    if (status.lastError) {
+      html += `<span class="pull-error-badge" title="${escHtml(status.lastError)}">
+                 ✕ Pull error
+               </span>`;
+    }
+
+    el.innerHTML = html;
+    el.classList.toggle('has-stale', !!status.isStale);
+
+  } catch (e) {
+    // Fallback to the old behaviour if status endpoint fails
+    const acc = Dash.accounts.find(a => a.id === id);
+    el.textContent = acc && acc.last_fetched ? timeSince(acc.last_fetched) : '';
+  }
 }
 
 function dashInitTabs() {

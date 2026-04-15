@@ -15,33 +15,38 @@ function getPullIntervalMinutes() {
   }
 }
 
+async function fetchAndStore(account) {
+  const res = await fetch(account.api_url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = await res.json();
+
+  const fetched_at = new Date().toISOString();
+  db.prepare(
+    'INSERT INTO snapshots (account_id, fetched_at, raw_json) VALUES (?,?,?)'
+  ).run(account.id, fetched_at, JSON.stringify(data));
+
+  db.prepare(
+    'UPDATE game_accounts SET last_fetched = ?, last_error = NULL WHERE id = ?'
+  ).run(fetched_at, account.id);
+
+  db.prepare(`
+    DELETE FROM snapshots
+    WHERE account_id = ?
+      AND id NOT IN (
+        SELECT id FROM snapshots
+        WHERE account_id = ?
+        ORDER BY fetched_at DESC
+        LIMIT ?
+      )
+  `).run(account.id, account.id, SNAPSHOT_RETENTION);
+
+  console.log('[poller] OK ' + account.display_name + ' at ' + fetched_at);
+  return { fetched_at };
+}
+
 async function pollAccount(account) {
   try {
-    const res = await fetch(account.api_url);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-
-    const fetched_at = new Date().toISOString();
-    db.prepare(
-      'INSERT INTO snapshots (account_id, fetched_at, raw_json) VALUES (?,?,?)'
-    ).run(account.id, fetched_at, JSON.stringify(data));
-
-    db.prepare(
-      'UPDATE game_accounts SET last_fetched = ?, last_error = NULL WHERE id = ?'
-    ).run(fetched_at, account.id);
-
-    db.prepare(`
-      DELETE FROM snapshots
-      WHERE account_id = ?
-        AND id NOT IN (
-          SELECT id FROM snapshots
-          WHERE account_id = ?
-          ORDER BY fetched_at DESC
-          LIMIT ?
-        )
-    `).run(account.id, account.id, SNAPSHOT_RETENTION);
-
-    console.log('[poller] OK ' + account.display_name + ' at ' + fetched_at);
+    await fetchAndStore(account);
   } catch (err) {
     console.error('[poller] FAIL ' + account.display_name + ':', err.message);
     db.prepare(
@@ -82,4 +87,4 @@ function startPoller() {
   console.log(`[poller] Started — interval: ${interval} minute(s) (adjustable in admin)`);
 }
 
-module.exports = { startPoller, runPoll, getPullIntervalMinutes };
+module.exports = { startPoller, runPoll, fetchAndStore, getPullIntervalMinutes };

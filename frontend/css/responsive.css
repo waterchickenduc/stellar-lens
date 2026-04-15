@@ -406,3 +406,11 @@
     overflow: visible !important;
   }
 }
+
+/* ── Performance tab responsive ── */
+@media (max-width: 900px) {
+  #panel-performance [style*="grid-template-columns:1fr 1fr"],
+  #panel-performance [style*="grid-template-columns:1fr 1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -70,7 +70,8 @@ async function renderHighscore(d) {
 
   try {
     const res = await apiFetch(`/api/accounts/${Dash.currentAccountId}/history?limit=500`);
-    const history = res.history || [];
+    // Reverse so oldest is on the left, newest on the right
+    const history = (res.history || []).reverse();
     if (history.length < 2) return;
 
     const labels = history.map(h => {

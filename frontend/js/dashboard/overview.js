@@ -46,7 +46,6 @@ async function renderOverview(d) {
   const cols = d.coloniesData || [];
 
   el.innerHTML = `
-    <!-- Production: stat cards + mini trend chart side by side -->
     <div class="section-heading">Total Production / hour</div>
     <div style="display:flex;gap:1rem;align-items:stretch;margin-bottom:1.5rem;flex-wrap:wrap">
       <div style="display:flex;flex-direction:column;gap:0.75rem;flex-shrink:0">
@@ -81,13 +80,13 @@ async function renderOverview(d) {
     ${perPlanetTable(cols, DEFENSE_ORDER, 'defenses', 'Defense', 'avg')}
 
     <div class="section-heading">Fleet Distribution per Planet</div>
-    ${fleetTable(cols)}
+    ${perPlanetTable(cols, SHIP_ORDER, 'ships', 'Ship', 'avg')}
   `;
 
-  // Async: fetch history and draw mini chart
+  // Async: fetch history — reversed so oldest is left, newest is right
   try {
     const res = await apiFetch(`/api/accounts/${Dash.currentAccountId}/history?limit=96`);
-    const history = res.history || [];
+    const history = (res.history || []).reverse();
     if (history.length < 2) return;
 
     const lbl = document.getElementById('ov-chart-label');
@@ -142,38 +141,17 @@ function perPlanetTable(cols, order, field, rowHeader, summaryMode) {
     const cells = cols.map(c => {
       const v = c[field]?.[key];
       total += v||0;
-      return `<td class="num">${v!=null ? v : '—'}</td>`;
+      return `<td class="num">${v!=null && v>0 ? v.toLocaleString() : '—'}</td>`;
     }).join('');
+    if (total === 0) return '';
     const summary = summaryMode==='avg' ? (cols.length ? Math.round(total/cols.length) : 0) : total;
     const summaryCell = summary>0
       ? `<td class="num" style="color:var(--accent);font-weight:600">${summary.toLocaleString()}</td>`
       : `<td class="num dim">—</td>`;
     return `<tr><td>${label}</td>${cells}${summaryCell}</tr>`;
-  }).join('');
+  }).filter(Boolean).join('');
   return `<div class="data-table-wrap"><table class="data-table">
     <thead><tr><th>${rowHeader}</th>${header}<th class="num" style="color:var(--accent)">${summaryLabel}</th></tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
-}
-
-function fleetTable(cols) {
-  const presentShips = SHIP_ORDER.filter(([key]) => cols.some(c=>(c.ships?.[key]||0)>0));
-  if (!presentShips.length) return '<p class="dim" style="font-size:0.85rem;padding:0.5rem 0">No ships detected.</p>';
-  const header = cols.map((c,i) =>
-    `<th class="num">P${i+1}<br><span class="dim" style="font-size:0.65rem">${escHtml(c.name)}</span></th>`
-  ).join('');
-  const rows = presentShips.map(([key,label]) => {
-    let total=0;
-    const cells = cols.map(c => {
-      const v = c.ships?.[key]||0;
-      total+=v;
-      return `<td class="num">${v>0 ? v.toLocaleString() : '<span class="dim">—</span>'}</td>`;
-    }).join('');
-    const avg = cols.length ? Math.round(total/cols.length) : 0;
-    return `<tr><td>${label}</td>${cells}<td class="num" style="color:var(--accent);font-weight:600">${avg > 0 ? avg.toLocaleString() : '—'}</td></tr>`;
-  }).join('');
-  return `<div class="data-table-wrap"><table class="data-table">
-    <thead><tr><th>Ship</th>${header}<th class="num" style="color:var(--accent)">Avg</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
 }

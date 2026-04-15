@@ -16,8 +16,10 @@ router.get('/:id/history', requireAuth, (req, res) => {
 
   if (!account) return res.status(404).json({ error: 'Account not found' });
 
+  // DESC so we always get the most recent N snapshots,
+  // the frontend reverses them to show oldest-left, newest-right
   const snapshots = prepare(
-    'SELECT id, fetched_at, raw_json FROM snapshots WHERE account_id = ? ORDER BY fetched_at ASC LIMIT ?'
+    'SELECT id, fetched_at, raw_json FROM snapshots WHERE account_id = ? ORDER BY fetched_at DESC LIMIT ?'
   ).all(accountId, limit);
 
   const history = snapshots.map(snap => {

@@ -682,3 +682,53 @@ html.light {
   outline: none;
   border-color: var(--primary);
 }
+
+/* ── Snapshot status label ─────────────────────── */
+.last-pull-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.pull-separator {
+  opacity: 0.4;
+}
+.pull-stale-badge {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: default;
+}
+.pull-error-badge {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: default;
+}
+
+/* ── Fix layout shift on pull (scrollbar always reserved) ── */
+.dash-content {
+  overflow-y: scroll;
+}
+
+/* ── Prevent layout shift — reserve scrollbar space without double scrollbar ── */
+html { overflow-y: auto; }
+.dash-content { overflow-y: auto; scrollbar-gutter: stable; }
+
+/* ── Prevent scrollbar flicker on pull ── */
+.dash-panel.active { min-height: 80vh; }
+
+/* ── Performance tab doughnut fixes ── */
+.perf-chart-wrap {
+  max-height: none !important;
+}
