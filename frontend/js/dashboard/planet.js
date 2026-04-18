@@ -1,4 +1,4 @@
-/* planet.js — per-planet detail with charts */
+/* frontend/js/dashboard/planet.js — per-planet detail with charts */
 
 let _selectedPlanet = 0;
 const _pCharts = {};
@@ -61,6 +61,48 @@ function systemBadgeColor(type) {
   return { Frontier:'#4f98a3', Colony:'#4fa36e', Pirate:'#c0575a', Imperium:'#9f7fd4', Consortium:'#c49a3c' }[type] || 'var(--text-muted)';
 }
 
+/* ── Storage section for planet detail ───────────────────── */
+
+function _pStorageSection(storOre, storCrys, storHel, ore, crys, hel) {
+  const rows = [
+    { label:'Ore',      icon:'⛏', stor:storOre,  prod:ore  },
+    { label:'Crystal',  icon:'◆', stor:storCrys, prod:crys },
+    { label:'Helium-3', icon:'⚛', stor:storHel,  prod:hel  },
+  ].filter(r => r.stor?.capacity).map(r => {
+    const amt      = r.stor.amount || 0;
+    const cap      = r.stor.capacity;
+    const fillPct  = Math.min(100, (amt / cap) * 100);
+    const hrs      = r.prod > 0 ? Math.max(0, cap - amt) / r.prod : Infinity;
+    const color    = _storAlertColor(hrs);
+    const tStr     = _fmtTime(hrs);
+    return `<tr>
+      <td>${r.icon} ${r.label}</td>
+      <td class="num">${amt.toLocaleString()}</td>
+      <td class="num">${cap.toLocaleString()}</td>
+      <td class="num" style="color:${color};font-weight:600">${fillPct.toFixed(1)}%</td>
+      <td class="num" style="color:${color};font-weight:600">${tStr || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  if (!rows) return '';
+  return `
+    <div class="section-heading">Storage</div>
+    <div class="data-table-wrap" style="margin-bottom:1.5rem">
+      <table class="data-table">
+        <thead><tr>
+          <th>Resource</th>
+          <th class="num">Stored</th>
+          <th class="num">Capacity</th>
+          <th class="num">% Full</th>
+          <th class="num">Time to Full</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+/* ── Main render ─────────────────────────────────────────── */
+
 function renderPlanet(d) {
   const el = document.getElementById('panel-planet');
   if (!el) return;
@@ -88,6 +130,19 @@ function renderPlanet(d) {
   const hel  = col.production?.helium3 || 0;
   const pct  = (v,t) => t>0 ? ((v/t)*100).toFixed(1) : '0.0';
 
+  // Storage for this planet
+  const storOre  = col.storage?.ore;
+  const storCrys = col.storage?.crystal;
+  const storHel  = col.storage?.helium3;
+
+  // Build storage bar for one resource — reuses globals from overview.js
+  const _ps = (stor, prod) => {
+    if (!stor?.capacity) return '';
+    const fillPct = Math.min(100, ((stor.amount || 0) / stor.capacity) * 100);
+    const hrs = prod > 0 ? Math.max(0, stor.capacity - (stor.amount || 0)) / prod : Infinity;
+    return _storageBar(fillPct, hrs);
+  };
+
   // Flatten all buildings for chart — color per category
   const CATEGORY_COLORS = {
     'Infrastructure': '#4f98a3',
@@ -101,8 +156,8 @@ function renderPlanet(d) {
   const buildingColors = allBuildings.map(b => CATEGORY_COLORS[b._cat] || '#7a7975');
 
   // Defense entries
-  const defEntries = P_DEFENSE_ORDER.filter(([k]) => (col.defenses?.[k]||0)>0);
-  const shipEntries = P_SHIP_ORDER.filter(([k]) => (col.ships?.[k]||0)>0);
+  const defEntries  = P_DEFENSE_ORDER.filter(([k]) => (col.defenses?.[k]||0)>0);
+  const shipEntries = P_SHIP_ORDER.filter(([k])    => (col.ships?.[k]||0)>0);
 
   el.innerHTML = `
     <!-- Planet tabs -->
@@ -125,18 +180,24 @@ function renderPlanet(d) {
         <div class="stat-card-label">⛏ Ore</div>
         <div class="stat-card-value">${fmtNum(ore)}</div>
         <div class="stat-card-sub">${pct(ore,empireOre)}% of empire</div>
+        ${_ps(storOre, ore)}
       </div>
       <div class="stat-card">
         <div class="stat-card-label">◆ Crystal</div>
         <div class="stat-card-value">${fmtNum(crys)}</div>
         <div class="stat-card-sub">${pct(crys,empireCrystal)}% of empire</div>
+        ${_ps(storCrys, crys)}
       </div>
       <div class="stat-card">
         <div class="stat-card-label">⚛ Helium-3</div>
         <div class="stat-card-value">${fmtNum(hel)}</div>
         <div class="stat-card-sub">${pct(hel,empireHelium)}% of empire</div>
+        ${_ps(storHel, hel)}
       </div>
     </div>
+
+    <!-- Storage table -->
+    ${col.storage ? _pStorageSection(storOre, storCrys, storHel, ore, crys, hel) : ''}
 
     <!-- Buildings: chart + table side by side -->
     <div class="section-heading">Buildings</div>
@@ -157,7 +218,7 @@ function renderPlanet(d) {
       <div>${renderOrderedTable(col.defenses||{}, P_DEFENSE_ORDER, 'Count')}</div>
     </div>` : '<p class="dim" style="font-size:0.85rem;padding:0.5rem 0 1rem">No defenses.</p>'}
 
-    <!-- Fleet: doughnut + table side by side -->
+    <!-- Fleet: chart + table side by side -->
     <div class="section-heading">Ships</div>
     ${shipEntries.length ? `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;align-items:start">
@@ -230,7 +291,7 @@ function renderPlanet(d) {
       });
     }
 
-    // Fleet — horizontal bar (matches table order)
+    // Fleet — horizontal bar
     destroyPChart('fleet');
     const ctxF = document.getElementById('p-chart-fleet');
     if (ctxF && shipEntries.length) {
@@ -262,6 +323,8 @@ function renderPlanet(d) {
   });
 }
 
+/* ── Unchanged helpers ───────────────────────────────────── */
+
 function renderBuildingGroups(buildings) {
   return BUILDING_GROUPS.map(group => {
     const rows = group.items.map(([key,label,maxLvl]) => {
@@ -269,9 +332,9 @@ function renderBuildingGroups(buildings) {
       if (lvl == null) return '';
       let levelHtml;
       if (maxLvl !== null) {
-        if (lvl >= maxLvl)      levelHtml = `<td class="num" style="color:var(--success);font-weight:600">${lvl} <span style="font-size:0.7rem">MAX</span></td>`;
+        if (lvl >= maxLvl)       levelHtml = `<td class="num" style="color:var(--success);font-weight:600">${lvl} <span style="font-size:0.7rem">MAX</span></td>`;
         else if (lvl===maxLvl-1) levelHtml = `<td class="num" style="color:#c49a3c;font-weight:600">${lvl}</td>`;
-        else                     levelHtml = `<td class="num">${lvl}</td>`;
+        else                      levelHtml = `<td class="num">${lvl}</td>`;
       } else {
         levelHtml = `<td class="num">${lvl}</td>`;
       }

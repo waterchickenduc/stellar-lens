@@ -1,4 +1,4 @@
-/* dashboard.css */
+/* frontend/css/dashboard.css */
 
 /* ── Root layout ─────────────────────────────────────── */
 html, body { height: 100%; }
@@ -731,4 +731,119 @@ html { overflow-y: auto; }
 /* ── Performance tab doughnut fixes ── */
 .perf-chart-wrap {
   max-height: none !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   Storage bars — overview stat cards + planet detail
+   ══════════════════════════════════════════════════════ */
+.stor-bar-track {
+  height: 5px;
+  background: var(--surface2);
+  border-radius: 99px;
+  overflow: hidden;
+  width: 100%;
+}
+.stor-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.4s ease;
+}
+.stor-bar-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.28rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ══════════════════════════════════════════════════════
+   Planet summary grid — overview "Planet Overview" section
+   ══════════════════════════════════════════════════════ */
+.planet-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 0.75rem;
+}
+.planet-summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+}
+.ps-header {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  flex-wrap: wrap;
+}
+.ps-name {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.88rem;
+}
+.ps-badge {
+  font-size: 0.63rem;
+  padding: 0.13rem 0.4rem;
+  border-radius: 99px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* Production numbers — always stacked so all cards are the same height */
+.ps-prod {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin-bottom: 0.6rem;
+}
+
+.ps-stor-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+}
+.ps-stor-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+}
+.ps-stor-label {
+  color: var(--text-muted);
+  width: 40px;
+  flex-shrink: 0;
+}
+.ps-stor-pct {
+  width: 30px;
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.ps-stor-time {
+  width: 52px;               /* wider — fits "37d 15h" */
+  text-align: right;
+  flex-shrink: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mobile: planet summary cards */
+@media (max-width: 600px) {
+  .planet-summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .planet-summary-card { padding: 0.7rem 0.75rem; }
+  .ps-prod { font-size: 0.7rem; }
+  .ps-stor-row { font-size: 0.65rem; }
+  .ps-stor-time { width: 44px; }
+}
+@media (max-width: 360px) {
+  .planet-summary-grid { grid-template-columns: 1fr; }
 }

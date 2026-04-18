@@ -1,4 +1,4 @@
-/* overview.js — totals across all planets */
+/* frontend/js/dashboard/overview.js — totals across all planets */
 
 const BUILDING_ORDER = [
   ['operations_center',  'Operations Center'],
@@ -32,18 +32,160 @@ const SHIP_ORDER = [
 
 let _ovChart = null;
 
+/* ── Storage / alert helpers ─────────────────────────────── */
+
+function _posType(pos) {
+  if (!pos) return null;
+  const m = pos.match(/\[([A-Z]+)-/);
+  if (!m) return null;
+  const t = { FRO:'Frontier', COL:'Colony', PIR:'Pirate', IMP:'Imperium', CON:'Consortium' };
+  return t[m[1]] || m[1];
+}
+
+function _storAlertColor(hrs) {
+  if (!isFinite(hrs) || hrs < 0) return 'var(--text-muted)';
+  if (hrs < 2)  return '#c0575a';  // red  — fills in < 2 h
+  if (hrs < 12) return '#c49a3c';  // amber — fills in < 12 h
+  return '#4fa36e';                 // green — plenty of time
+}
+
+function _fmtTime(hrs) {
+  if (!isFinite(hrs) || hrs < 0) return null;
+  if (hrs < 1)  return `${Math.round(hrs * 60)}m`;
+  if (hrs < 24) return `${hrs.toFixed(1)}h`;
+  const d = Math.floor(hrs / 24);
+  const h = Math.round(hrs % 24);
+  return h > 0 ? `${d}d ${h}h` : `${d}d`;
+}
+
+/*
+ * Renders a thin progress bar + "XX.X% full  Xh" line.
+ * pct    — aggregate fill percentage (0–100)
+ * minHrs — soonest any single planet overflows for this resource
+ */
+function _storageBar(pct, minHrs) {
+  const color   = _storAlertColor(minHrs);
+  const timeStr = _fmtTime(minHrs);
+  return `
+    <div class="stor-bar-track" style="margin-top:0.55rem">
+      <div class="stor-bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div>
+    </div>
+    <div class="stor-bar-meta">
+      <span>${pct.toFixed(1)}% full</span>
+      ${timeStr ? `<span style="color:${color};font-weight:600">${timeStr}</span>` : ''}
+    </div>`;
+}
+
+/* ── Planet summary grid ─────────────────────────────────── */
+
+function _planetSummaryCards(cols) {
+  const BADGE_COLORS = {
+    Frontier:'#4f98a3', Colony:'#4fa36e', Pirate:'#c0575a',
+    Imperium:'#9f7fd4', Consortium:'#c49a3c',
+  };
+
+  return cols.map(col => {
+    const ore  = col.production?.ore     || 0;
+    const crys = col.production?.crystal || 0;
+    const hel  = col.production?.helium3 || 0;
+    const s    = col.storage;
+    const type = _posType(col.position);
+    const bc   = type ? (BADGE_COLORS[type] || 'var(--text-muted)') : null;
+
+    const storRows = s ? [
+      { label:'Ore',     amt: s.ore?.amount||0,    cap: s.ore?.capacity||0,    prod: ore  },
+      { label:'Crystal', amt: s.crystal?.amount||0, cap: s.crystal?.capacity||0, prod: crys },
+      { label:'Helium',  amt: s.helium3?.amount||0, cap: s.helium3?.capacity||0, prod: hel  },
+    ].filter(r => r.cap > 0).map(r => {
+      const pct    = Math.min(100, (r.amt / r.cap) * 100);
+      const rem    = Math.max(0, r.cap - r.amt);
+      const hrs    = r.prod > 0 ? rem / r.prod : Infinity;
+      const color  = _storAlertColor(hrs);
+      const tStr   = _fmtTime(hrs);
+      return `
+        <div class="ps-stor-row">
+          <span class="ps-stor-label">${r.label}</span>
+          <div class="stor-bar-track" style="flex:1;min-width:36px">
+            <div class="stor-bar-fill" style="width:${pct.toFixed(1)}%;background:${color}"></div>
+          </div>
+          <span class="ps-stor-pct" style="color:${color}">${Math.round(pct)}%</span>
+          ${tStr ? `<span class="ps-stor-time" style="color:${color}">${tStr}</span>` : ''}
+        </div>`;
+    }).join('') : '';
+
+    return `
+      <div class="planet-summary-card">
+        <div class="ps-header">
+          <span class="ps-name">${escHtml(col.name)}</span>
+          ${bc ? `<span class="ps-badge" style="background:${bc}22;color:${bc};border:1px solid ${bc}44">${type}</span>` : ''}
+        </div>
+        <div class="ps-prod">
+          <span>⛏ ${fmtNum(ore)}</span>
+          <span>◆ ${fmtNum(crys)}</span>
+          <span>⚛ ${fmtNum(hel)}</span>
+        </div>
+        ${s && storRows ? `<div class="ps-stor-rows">${storRows}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+/* ── Main render ─────────────────────────────────────────── */
+
 async function renderOverview(d) {
   const el = document.getElementById('panel-overview');
   if (!el) return;
 
+  const cols = d.coloniesData || [];
+
+  // Totals
   let totalOre=0, totalCrystal=0, totalHelium=0;
-  (d.coloniesData||[]).forEach(col => {
-    totalOre     += col.production?.ore     || 0;
-    totalCrystal += col.production?.crystal || 0;
-    totalHelium  += col.production?.helium3 || 0;
+
+  // Storage aggregates (sum across planets that have storage data)
+  let sOreAmt=0,  sOreCap=0;
+  let sCrysAmt=0, sCrysCap=0;
+  let sHelAmt=0,  sHelCap=0;
+
+  // Minimum hours until any single planet overflows — drives alert color
+  let minOreHrs=Infinity, minCrysHrs=Infinity, minHelHrs=Infinity;
+
+  cols.forEach(col => {
+    const ore  = col.production?.ore     || 0;
+    const crys = col.production?.crystal || 0;
+    const hel  = col.production?.helium3 || 0;
+    totalOre     += ore;
+    totalCrystal += crys;
+    totalHelium  += hel;
+
+    const s = col.storage;
+    if (s) {
+      if (s.ore?.capacity) {
+        const amt = s.ore.amount || 0;
+        const cap = s.ore.capacity;
+        sOreAmt += amt; sOreCap += cap;
+        const hrs = ore > 0 ? Math.max(0, cap - amt) / ore : Infinity;
+        minOreHrs = Math.min(minOreHrs, hrs);
+      }
+      if (s.crystal?.capacity) {
+        const amt = s.crystal.amount || 0;
+        const cap = s.crystal.capacity;
+        sCrysAmt += amt; sCrysCap += cap;
+        const hrs = crys > 0 ? Math.max(0, cap - amt) / crys : Infinity;
+        minCrysHrs = Math.min(minCrysHrs, hrs);
+      }
+      if (s.helium3?.capacity) {
+        const amt = s.helium3.amount || 0;
+        const cap = s.helium3.capacity;
+        sHelAmt += amt; sHelCap += cap;
+        const hrs = hel > 0 ? Math.max(0, cap - amt) / hel : Infinity;
+        minHelHrs = Math.min(minHelHrs, hrs);
+      }
+    }
   });
 
-  const cols = d.coloniesData || [];
+  // Aggregate fill percentages
+  const orePct  = sOreCap  > 0 ? Math.min(100, (sOreAmt  / sOreCap)  * 100) : null;
+  const crysPct = sCrysCap > 0 ? Math.min(100, (sCrysAmt / sCrysCap) * 100) : null;
+  const helPct  = sHelCap  > 0 ? Math.min(100, (sHelAmt  / sHelCap)  * 100) : null;
 
   el.innerHTML = `
     <div class="section-heading">Total Production / hour</div>
@@ -53,16 +195,19 @@ async function renderOverview(d) {
           <div class="stat-card-label">⛏ Ore</div>
           <div class="stat-card-value">${fmtNum(totalOre)}</div>
           <div class="stat-card-sub">across ${cols.length} planets</div>
+          ${orePct !== null ? _storageBar(orePct, minOreHrs) : ''}
         </div>
         <div class="stat-card">
           <div class="stat-card-label">◆ Crystal</div>
           <div class="stat-card-value">${fmtNum(totalCrystal)}</div>
           <div class="stat-card-sub">across ${cols.length} planets</div>
+          ${crysPct !== null ? _storageBar(crysPct, minCrysHrs) : ''}
         </div>
         <div class="stat-card">
           <div class="stat-card-label">⚛ Helium-3</div>
           <div class="stat-card-value">${fmtNum(totalHelium)}</div>
           <div class="stat-card-sub">across ${cols.length} planets</div>
+          ${helPct !== null ? _storageBar(helPct, minHelHrs) : ''}
         </div>
       </div>
       <div style="flex:1;min-width:260px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column">
@@ -71,6 +216,11 @@ async function renderOverview(d) {
           <canvas id="ov-prod-chart"></canvas>
         </div>
       </div>
+    </div>
+
+    <div class="section-heading">Planet Overview</div>
+    <div class="planet-summary-grid" style="margin-bottom:1.5rem">
+      ${_planetSummaryCards(cols)}
     </div>
 
     <div class="section-heading">Buildings per Planet</div>
@@ -130,6 +280,8 @@ async function renderOverview(d) {
     });
   } catch(e) { /* chart not critical */ }
 }
+
+/* ── Unchanged helpers ───────────────────────────────────── */
 
 function perPlanetTable(cols, order, field, rowHeader, summaryMode) {
   const header = cols.map((c,i) =>
