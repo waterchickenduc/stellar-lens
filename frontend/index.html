@@ -298,6 +298,19 @@ async function doLogin() {
     API.setUser(data.user);
     window.location.href = '/dashboard.html';
   } catch (err) {
+    // ── DEBUG: force the error to be visible ──
+    console.error('[LOGIN ERROR]', err);
+    console.error('[LOGIN ERROR] message:', err && err.message);
+    console.error('[LOGIN ERROR] data:', err && err.data);
+    console.error('[LOGIN ERROR] status:', err && err.status);
+
+    var debugMsg = 'LOGIN ERROR\n\n';
+    debugMsg += 'message: ' + (err && err.message ? err.message : '(none)') + '\n';
+    debugMsg += 'status:  ' + (err && err.status  ? err.status  : '(none)') + '\n';
+    debugMsg += 'data:    ' + (err && err.data    ? JSON.stringify(err.data) : '(none)');
+    window.alert(debugMsg);
+    // ──────────────────────────────────────────
+
     if (err.data && err.data.unconfirmed) {
       showError(alertEl, 'Please confirm your email first. Check your inbox.');
     } else {
