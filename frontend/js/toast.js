@@ -1,4 +1,4 @@
-/* toast.js — shared notification toasts */
+/* frontend/js/toast.js — shared notification toasts */
 
 const TOAST_DURATIONS = {
   error:   0,      // 0 = stays until dismissed

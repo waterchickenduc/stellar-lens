@@ -1,3 +1,4 @@
+//  backend/middleware/auth.js
 'use strict';
 const jwt    = require('jsonwebtoken');
 const db     = require('../db');

@@ -1,4 +1,4 @@
-/* api.js — shared auth-aware fetch wrapper */
+/* frontend/js/api.js — shared auth-aware fetch wrapper */
 function getToken() {
   return localStorage.getItem('stellar_token');
 }

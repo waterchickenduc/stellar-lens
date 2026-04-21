@@ -1,3 +1,4 @@
+/* frontend/js/admin/modal.js */
 // Generic modal helper
 const Modal = (() => {
   const overlay = document.getElementById('modal-overlay');

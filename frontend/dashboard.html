@@ -1,3 +1,4 @@
+<!-- frontend/dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,6 +57,7 @@
     </div>
   </aside>
 
+
   <div class="dash-main">
     <div class="dash-tabbar">
       <div class="dash-tab active" data-tab="overview">Overview</div>
@@ -96,6 +98,7 @@
   </div>
 </div>
 
+
 <!-- Share Modal -->
 <div id="share-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeShareModal()">
   <div class="modal-box share-modal-box">
@@ -113,10 +116,12 @@
     <div class="modal-body">
       <div id="share-status-section" style="margin-bottom:1.25rem"></div>
 
+
       <div class="share-tabs-section">
         <div class="share-tabs-label">Visible tabs for visitors</div>
         <div id="share-tabs-list"></div>
       </div>
+
 
       <div class="share-tabs-section" style="margin-top:0.75rem">
         <div class="share-tabs-label">Performance history shown to visitors</div>
@@ -131,6 +136,7 @@
     </div>
   </div>
 </div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="/js/api.js"></script>

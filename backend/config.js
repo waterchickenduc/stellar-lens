@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────
-//  config.js
+//  backend/config.js
 //  Reads .env and exports a single config object.
 //  Every other file imports from here — never process.env directly.
 // ─────────────────────────────────────────

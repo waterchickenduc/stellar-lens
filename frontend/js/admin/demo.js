@@ -1,4 +1,4 @@
-/* admin/demo.js — Demo account management */
+/* frontend/js/admin/demo.js — Demo account management */
 'use strict';
 
 var _demoAccounts = [];

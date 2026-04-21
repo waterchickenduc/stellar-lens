@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────
-//  db/migrations.js
+//  backend/db/migrations.js
 //  Handles schema changes after first deploy.
 //
 //  HOW IT WORKS:

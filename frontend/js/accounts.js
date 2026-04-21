@@ -1,4 +1,4 @@
-/* accounts.js — share controls moved to dashboard Share button */
+/* frontend/js/accounts.js — share controls moved to dashboard Share button */
 var _accounts = [];
 var _editingId = null;
 

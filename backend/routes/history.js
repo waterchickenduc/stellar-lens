@@ -1,4 +1,4 @@
-/* history.js — time-series data from stored snapshots */
+//  backend/routes/highscore.js
 const express = require('express');
 const router  = express.Router();
 const { requireAuth } = require('../middleware/auth');

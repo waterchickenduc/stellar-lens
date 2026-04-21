@@ -1,3 +1,4 @@
+//  backend/services/adminSync.js
 'use strict';
 const bcrypt = require('bcryptjs');
 const db     = require('../db');

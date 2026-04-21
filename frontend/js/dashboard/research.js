@@ -1,4 +1,4 @@
-/* research.js — research table */
+/* frontend/js/dashboard/research.js — research table */
 const RESEARCH_ORDER = [
   { key: 'energy_tech',            label: 'Atomic Fusion',    max: 30, category: 'Economy' },
   { key: 'storage_tech',           label: 'Storage',          max: 30, category: 'Economy' },

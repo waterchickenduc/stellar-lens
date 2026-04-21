@@ -1,4 +1,4 @@
-/* invites.js — invite code management */
+/* frontend/js/admin/invites.js — invite code management */
 
 async function loadInvites() {
   const tbody = document.getElementById('invites-tbody');

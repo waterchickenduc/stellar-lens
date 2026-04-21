@@ -1,3 +1,4 @@
+//  backend/routes/auth.js
 'use strict';
 const express = require('express');
 const bcrypt  = require('bcryptjs');

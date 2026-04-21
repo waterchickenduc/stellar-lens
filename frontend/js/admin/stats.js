@@ -1,3 +1,4 @@
+/* frontend/js/admin/stats.js */
 // Load and render stats cards
 async function loadStats() {
   try {

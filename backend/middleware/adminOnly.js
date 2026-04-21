@@ -1,3 +1,5 @@
+//  backend/middleware/adminOnly.js
+
 'use strict';
 
 function adminOnly(req, res, next) {

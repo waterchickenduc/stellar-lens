@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────
-//  db/schema.js
+//  backend/db/schema.js
 //  Creates all tables on first boot.
 //  Safe to call on every restart — uses
 //  CREATE TABLE IF NOT EXISTS everywhere.

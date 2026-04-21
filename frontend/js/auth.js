@@ -1,3 +1,4 @@
+/* frontend/js/auth.js */
 // Auth helpers used across all pages
 function requireLogin() {
   const token = API.getToken();

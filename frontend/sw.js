@@ -1,3 +1,4 @@
+/* frontend/sw.js */
 /* Stellar Lens — Service Worker (cache disabled, self-destruct) */
 self.addEventListener('install', function() { self.skipWaiting(); });
 self.addEventListener('activate', function(e) {

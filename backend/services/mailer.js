@@ -1,3 +1,4 @@
+//  backend/services/mailer.js
 'use strict';
 const nodemailer = require('nodemailer');
 const config = require('../config');

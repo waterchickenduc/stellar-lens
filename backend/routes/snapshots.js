@@ -1,4 +1,4 @@
-// routes/snapshots.js
+//  backend/routes/snapshots.js
 'use strict';
 const express = require('express');
 const router  = express.Router();

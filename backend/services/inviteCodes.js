@@ -1,3 +1,4 @@
+//  backend/services/inviteCodes.js
 'use strict';
 const crypto = require('crypto');
 const db     = require('../db');

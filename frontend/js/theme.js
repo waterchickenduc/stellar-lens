@@ -1,4 +1,4 @@
-/* theme.js — dark/light toggle */
+/* frontend/js/theme.js — dark/light toggle */
 
 function initTheme() {
   const saved = localStorage.getItem('stellar_theme') || 'dark';

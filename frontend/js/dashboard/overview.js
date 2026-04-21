@@ -1,4 +1,4 @@
-/* frontend/js/dashboard/overview.js — totals across all planets */
+/* frontend/js/dashboard/overview.js */
 
 const BUILDING_ORDER = [
   ['operations_center',  'Operations Center'],
@@ -44,9 +44,9 @@ function _posType(pos) {
 
 function _storAlertColor(hrs) {
   if (!isFinite(hrs) || hrs < 0) return 'var(--text-muted)';
-  if (hrs < 2)  return '#c0575a';  // red  — fills in < 2 h
-  if (hrs < 12) return '#c49a3c';  // amber — fills in < 12 h
-  return '#4fa36e';                 // green — plenty of time
+  if (hrs < 2)  return '#c0575a';
+  if (hrs < 12) return '#c49a3c';
+  return '#4fa36e';
 }
 
 function _fmtTime(hrs) {
@@ -137,15 +137,12 @@ async function renderOverview(d) {
 
   const cols = d.coloniesData || [];
 
-  // Totals
   let totalOre=0, totalCrystal=0, totalHelium=0;
 
-  // Storage aggregates (sum across planets that have storage data)
   let sOreAmt=0,  sOreCap=0;
   let sCrysAmt=0, sCrysCap=0;
   let sHelAmt=0,  sHelCap=0;
 
-  // Minimum hours until any single planet overflows — drives alert color
   let minOreHrs=Infinity, minCrysHrs=Infinity, minHelHrs=Infinity;
 
   cols.forEach(col => {
@@ -182,7 +179,6 @@ async function renderOverview(d) {
     }
   });
 
-  // Aggregate fill percentages
   const orePct  = sOreCap  > 0 ? Math.min(100, (sOreAmt  / sOreCap)  * 100) : null;
   const crysPct = sCrysCap > 0 ? Math.min(100, (sCrysAmt / sCrysCap) * 100) : null;
   const helPct  = sHelCap  > 0 ? Math.min(100, (sHelAmt  / sHelCap)  * 100) : null;
@@ -213,7 +209,7 @@ async function renderOverview(d) {
       <div style="flex:1;min-width:260px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column">
         <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem" id="ov-chart-label">Production trend</div>
         <div style="flex:1;position:relative;min-height:140px">
-          <canvas id="ov-prod-chart"></canvas>
+          anvas id="ov-prod-chart"></canvas>
         </div>
       </div>
     </div>
@@ -233,7 +229,6 @@ async function renderOverview(d) {
     ${perPlanetTable(cols, SHIP_ORDER, 'ships', 'Ship', 'avg')}
   `;
 
-  // Async: fetch history — reversed so oldest is left, newest is right
   try {
     const res = await apiFetch(`/api/accounts/${Dash.currentAccountId}/history?limit=96`);
     const history = (res.history || []).reverse();
@@ -302,7 +297,7 @@ function perPlanetTable(cols, order, field, rowHeader, summaryMode) {
       : `<td class="num dim">—</td>`;
     return `<tr><td>${label}</td>${cells}${summaryCell}</tr>`;
   }).filter(Boolean).join('');
-  return `<div class="data-table-wrap"><table class="data-table">
+  return `<div class="data-table-wrap" style="display:block;width:100%"><table class="data-table" style="width:100%">
     <thead><tr><th>${rowHeader}</th>${header}<th class="num" style="color:var(--accent)">${summaryLabel}</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;

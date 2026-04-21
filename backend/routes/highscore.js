@@ -1,4 +1,4 @@
-// routes/highscore.js — STUB
+//  backend/routes/highscore.js
 'use strict';
 const express = require('express');
 const router  = express.Router();

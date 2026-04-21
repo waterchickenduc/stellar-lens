@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────
-//  db/index.js
+//  backend/db/index.js
 //  Opens and returns the SQLite database connection.
 //  All other files import db from here — never open
 //  their own connection.

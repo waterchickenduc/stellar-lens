@@ -1,4 +1,4 @@
-/* share.js — Dashboard share modal */
+/* frontend/js/dashboard/share.js — Dashboard share modal */
 'use strict';
 
 var SHARE_ALL_TABS = [

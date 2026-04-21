@@ -1,4 +1,4 @@
-/* frontend/js/dashboard/planet.js — per-planet detail with charts */
+/* frontend/js/dashboard/planet.js */
 
 let _selectedPlanet = 0;
 const _pCharts = {};
@@ -130,12 +130,10 @@ function renderPlanet(d) {
   const hel  = col.production?.helium3 || 0;
   const pct  = (v,t) => t>0 ? ((v/t)*100).toFixed(1) : '0.0';
 
-  // Storage for this planet
   const storOre  = col.storage?.ore;
   const storCrys = col.storage?.crystal;
   const storHel  = col.storage?.helium3;
 
-  // Build storage bar for one resource — reuses globals from overview.js
   const _ps = (stor, prod) => {
     if (!stor?.capacity) return '';
     const fillPct = Math.min(100, ((stor.amount || 0) / stor.capacity) * 100);
@@ -143,7 +141,6 @@ function renderPlanet(d) {
     return _storageBar(fillPct, hrs);
   };
 
-  // Flatten all buildings for chart — color per category
   const CATEGORY_COLORS = {
     'Infrastructure': '#4f98a3',
     'Mines':          '#4fa36e',
@@ -155,7 +152,6 @@ function renderPlanet(d) {
   const buildingValues = allBuildings.map(b => col.buildings?.[b[0]] || 0);
   const buildingColors = allBuildings.map(b => CATEGORY_COLORS[b._cat] || '#7a7975');
 
-  // Defense entries
   const defEntries  = P_DEFENSE_ORDER.filter(([k]) => (col.defenses?.[k]||0)>0);
   const shipEntries = P_SHIP_ORDER.filter(([k])    => (col.ships?.[k]||0)>0);
 
@@ -229,9 +225,7 @@ function renderPlanet(d) {
     </div>` : '<p class="dim" style="font-size:0.85rem;padding:0.5rem 0 1rem">No ships.</p>'}
   `;
 
-  // Draw charts after DOM is ready
   requestAnimationFrame(() => {
-    // Buildings — horizontal bar
     destroyPChart('buildings');
     const ctxB = document.getElementById('p-chart-buildings');
     if (ctxB && buildingLabels.length) {
@@ -261,7 +255,6 @@ function renderPlanet(d) {
       });
     }
 
-    // Defense — horizontal bar
     destroyPChart('defense');
     const ctxD = document.getElementById('p-chart-defense');
     if (ctxD && defEntries.length) {
@@ -291,7 +284,6 @@ function renderPlanet(d) {
       });
     }
 
-    // Fleet — horizontal bar
     destroyPChart('fleet');
     const ctxF = document.getElementById('p-chart-fleet');
     if (ctxF && shipEntries.length) {

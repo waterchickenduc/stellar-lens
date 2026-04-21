@@ -1,3 +1,4 @@
+/* frontend/js/admin/users.js */
 // User management section
 async function loadUsers() {
   const tbody = document.getElementById('users-tbody');

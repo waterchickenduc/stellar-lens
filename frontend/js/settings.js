@@ -1,4 +1,4 @@
-/* settings.js — sidebar nav, change password, change email */
+/* frontend/js/settings.js — sidebar nav, change password, change email */
 
 function initSidebar() {
   document.querySelectorAll('.sidebar-link[data-panel]').forEach(link => {

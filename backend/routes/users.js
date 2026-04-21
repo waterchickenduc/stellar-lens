@@ -1,4 +1,4 @@
-// routes/users.js — STUB
+//  backend/routes/users.js — STUB
 'use strict';
 const express = require('express');
 const router  = express.Router();
