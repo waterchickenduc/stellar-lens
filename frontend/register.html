@@ -32,7 +32,7 @@
   </div>
 
   <div class="auth-title">Create account</div>
-  <div class="auth-sub">You need an invite code to register.</div>
+  <div class="auth-sub">Create your account to access the dashboard.</div>
 
   <div id="alert" class="alert"></div>
 
@@ -49,12 +49,6 @@
   <div class="field">
     <label for="password2">Confirm password</label>
     <input id="password2" type="password" placeholder="••••••••" autocomplete="new-password">
-  </div>
-
-  <div class="field">
-    <label for="invite">Invite code</label>
-    <input id="invite" type="text" placeholder="XXXXXXXX" autocomplete="off"
-           style="text-transform:uppercase;letter-spacing:.1em">
   </div>
 
   <button id="regBtn" class="btn btn-primary">
@@ -76,26 +70,17 @@
   const emailEl   = document.getElementById('email');
   const passEl    = document.getElementById('password');
   const pass2El   = document.getElementById('password2');
-  const inviteEl  = document.getElementById('invite');
   const btn       = document.getElementById('regBtn');
   const alertEl   = document.getElementById('alert');
-
-  // Force uppercase on invite input
-  inviteEl.addEventListener('input', () => {
-    const pos = inviteEl.selectionStart;
-    inviteEl.value = inviteEl.value.toUpperCase();
-    inviteEl.setSelectionRange(pos, pos);
-  });
 
   async function doRegister() {
     hideAlert(alertEl);
 
-    const email      = emailEl.value.trim();
-    const password   = passEl.value;
-    const password2  = pass2El.value;
-    const inviteCode = inviteEl.value.trim();
+    const email     = emailEl.value.trim();
+    const password  = passEl.value;
+    const password2 = pass2El.value;
 
-    if (!email || !password || !password2 || !inviteCode) {
+    if (!email || !password || !password2) {
       showError(alertEl, 'Please fill in all fields.'); return;
     }
     if (password !== password2) {
@@ -107,7 +92,7 @@
 
     setLoading(btn, true);
     try {
-      const data = await API.post('/auth/register', { email, password, inviteCode }, false);
+      const data = await API.post('/auth/register', { email, password }, false);
       showSuccess(alertEl, data.message || 'Registration successful!');
 
       if (data.confirmLink) {
@@ -117,8 +102,7 @@
         alertEl.appendChild(note);
       }
 
-      // Disable form after success
-      [emailEl, passEl, pass2El, inviteEl, btn].forEach(el => el.disabled = true);
+      [emailEl, passEl, pass2El, btn].forEach(el => el.disabled = true);
     } catch (err) {
       showError(alertEl, err.message || 'Registration failed.');
     } finally {

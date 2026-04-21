@@ -1,4 +1,5 @@
 /* frontend/js/admin/stats.js */
+
 // Load and render stats cards
 async function loadStats() {
   try {
@@ -7,7 +8,6 @@ async function loadStats() {
     document.getElementById('stat-confirmed').textContent = d.confirmedUsers;
     document.getElementById('stat-accounts').textContent  = d.totalAccounts;
     document.getElementById('stat-snapshots').textContent = d.totalSnapshots;
-    document.getElementById('stat-invites').textContent   = d.activeInvites;
   } catch (e) {
     toast('Failed to load stats: ' + e.message, 'error');
   }
@@ -27,12 +27,14 @@ async function saveSettings() {
   const el  = document.getElementById('setting-pull-interval');
   const statusEl = document.getElementById('settings-status');
   if (!el) return;
+
   const val = parseInt(el.value);
   if (isNaN(val) || val < 1 || val > 1440) {
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = 'Invalid value (1–1440)';
     return;
   }
+
   try {
     await API.post('/admin/settings', { key: 'pull_interval_minutes', value: val });
     statusEl.style.color = 'var(--success)';

@@ -7,9 +7,8 @@ const crypto  = require('crypto');
 
 const db     = require('../db');
 const config = require('../config');
-const { requireAuth }                            = require('../middleware/auth');
-const { validateInviteCode, markInviteCodeUsed } = require('../services/inviteCodes');
-const { sendConfirmationEmail, smtpEnabled }     = require('../services/mailer');
+const { requireAuth }                        = require('../middleware/auth');
+const { sendConfirmationEmail, smtpEnabled } = require('../services/mailer');
 
 const router = express.Router();
 
@@ -33,18 +32,13 @@ function saveEmailToken(userId, type, hoursValid = 24) {
 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
-  const { email, password, inviteCode } = req.body || {};
+  const { email, password } = req.body || {};
 
-  if (!email || !password || !inviteCode) {
-    return res.status(400).json({ error: 'email, password and inviteCode are required' });
+  if (!email || !password) {
+    return res.status(400).json({ error: 'email and password are required' });
   }
   if (password.length < 8) {
     return res.status(400).json({ error: 'Password must be at least 8 characters' });
-  }
-
-  const invite = validateInviteCode(inviteCode);
-  if (!invite) {
-    return res.status(400).json({ error: 'Invalid or expired invite code' });
   }
 
   const norm     = email.trim().toLowerCase();
@@ -58,8 +52,6 @@ router.post('/register', async (req, res) => {
     "INSERT INTO users (email, password_hash, role, confirmed) VALUES (?, ?, 'user', 0)"
   ).run(norm, hash);
   const userId = result.lastInsertRowid;
-
-  markInviteCodeUsed(inviteCode);
 
   const token = saveEmailToken(userId, 'confirm', 24);
   try {

@@ -96,7 +96,6 @@
         <div class="stat-card"><div class="stat-label">Confirmed</div><div class="stat-value" id="stat-confirmed">—</div></div>
         <div class="stat-card"><div class="stat-label">Game Accounts</div><div class="stat-value" id="stat-accounts">—</div></div>
         <div class="stat-card"><div class="stat-label">Snapshots</div><div class="stat-value" id="stat-snapshots">—</div></div>
-        <div class="stat-card"><div class="stat-label">Active Invites</div><div class="stat-value" id="stat-invites">—</div></div>
       </div>
 
       <!-- Users -->
@@ -108,19 +107,6 @@
         <table class="data-table">
           <thead><tr><th>ID</th><th>Email</th><th>Role</th><th>Confirmed</th><th>Joined</th><th>Actions</th></tr></thead>
           <tbody id="users-tbody"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
-        </table>
-      </div>
-
-      <!-- Invite Codes -->
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title">Invite Codes</div>
-          <button class="btn-sm danger"  onclick="purgeExpired()">Purge Expired</button>
-          <button class="btn-sm success" onclick="generateInvite()">+ Generate Code</button>
-        </div>
-        <table class="data-table">
-          <thead><tr><th>Code</th><th>Status</th><th>Usage</th><th>Expires</th><th>Used By</th><th>Actions</th></tr></thead>
-          <tbody id="invites-tbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
         </table>
       </div>
 
@@ -203,7 +189,6 @@
 <script src="/js/admin/modal.js"></script>
 <script src="/js/admin/stats.js"></script>
 <script src="/js/admin/users.js"></script>
-<script src="/js/admin/invites.js"></script>
 <script src="/js/admin/demo.js"></script>
 <script>
   requireLogin();
@@ -237,7 +222,6 @@
 
   loadStats();
   loadUsers();
-  loadInvites();
   loadSettings();
   loadDemo();
 </script>
