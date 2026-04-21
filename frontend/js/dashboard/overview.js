@@ -93,15 +93,15 @@ function _planetSummaryCards(cols) {
     const bc   = type ? (BADGE_COLORS[type] || 'var(--text-muted)') : null;
 
     const storRows = s ? [
-      { label:'Ore',     amt: s.ore?.amount||0,    cap: s.ore?.capacity||0,    prod: ore  },
+      { label:'Ore',     amt: s.ore?.amount||0,     cap: s.ore?.capacity||0,     prod: ore  },
       { label:'Crystal', amt: s.crystal?.amount||0, cap: s.crystal?.capacity||0, prod: crys },
       { label:'Helium',  amt: s.helium3?.amount||0, cap: s.helium3?.capacity||0, prod: hel  },
     ].filter(r => r.cap > 0).map(r => {
-      const pct    = Math.min(100, (r.amt / r.cap) * 100);
-      const rem    = Math.max(0, r.cap - r.amt);
-      const hrs    = r.prod > 0 ? rem / r.prod : Infinity;
-      const color  = _storAlertColor(hrs);
-      const tStr   = _fmtTime(hrs);
+      const pct   = Math.min(100, (r.amt / r.cap) * 100);
+      const rem   = Math.max(0, r.cap - r.amt);
+      const hrs   = r.prod > 0 ? rem / r.prod : Infinity;
+      const color = _storAlertColor(hrs);
+      const tStr  = _fmtTime(hrs);
       return `
         <div class="ps-stor-row">
           <span class="ps-stor-label">${r.label}</span>
@@ -209,7 +209,7 @@ async function renderOverview(d) {
       <div style="flex:1;min-width:260px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem;display:flex;flex-direction:column">
         <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem" id="ov-chart-label">Production trend</div>
         <div style="flex:1;position:relative;min-height:140px">
-          anvas id="ov-prod-chart"></canvas>
+          <canvas id="ov-prod-chart"></canvas>
         </div>
       </div>
     </div>
@@ -279,25 +279,48 @@ async function renderOverview(d) {
 /* ── Unchanged helpers ───────────────────────────────────── */
 
 function perPlanetTable(cols, order, field, rowHeader, summaryMode) {
-  const header = cols.map((c,i) =>
-    `<th class="num">P${i+1}<br><span class="dim" style="font-size:0.65rem">${escHtml(c.name)}</span></th>`
+  const header = cols.map((c, i) =>
+    `<th class="num">P${i + 1}<br><span class="dim" style="font-size:0.65rem">${escHtml(c.name)}</span></th>`
   ).join('');
-  const summaryLabel = summaryMode==='avg' ? 'Avg' : 'Total';
-  const rows = order.map(([key,label]) => {
-    let total=0;
+
+  const summaryLabel = summaryMode === 'avg' ? 'Avg' : 'Total';
+
+  const firstColWidth = '24%';
+  const sideColCount = cols.length + 1; // planets + summary
+  const sideColWidth = `calc((100% - ${firstColWidth}) / ${sideColCount})`;
+
+  const colgroup = `
+    <colgroup>
+      <col style="width:${firstColWidth}">
+      ${cols.map(() => `<col style="width:${sideColWidth}">`).join('')}
+      <col style="width:${sideColWidth}">
+    </colgroup>
+  `;
+
+  const rows = order.map(([key, label]) => {
+    let total = 0;
+
     const cells = cols.map(c => {
       const v = c[field]?.[key];
-      total += v||0;
-      return `<td class="num">${v!=null && v>0 ? v.toLocaleString() : '—'}</td>`;
+      total += v || 0;
+      return `<td class="num">${v != null && v > 0 ? v.toLocaleString() : '—'}</td>`;
     }).join('');
+
     if (total === 0) return '';
-    const summary = summaryMode==='avg' ? (cols.length ? Math.round(total/cols.length) : 0) : total;
-    const summaryCell = summary>0
+
+    const summary = summaryMode === 'avg'
+      ? (cols.length ? Math.round(total / cols.length) : 0)
+      : total;
+
+    const summaryCell = summary > 0
       ? `<td class="num" style="color:var(--accent);font-weight:600">${summary.toLocaleString()}</td>`
       : `<td class="num dim">—</td>`;
+
     return `<tr><td>${label}</td>${cells}${summaryCell}</tr>`;
   }).filter(Boolean).join('');
-  return `<div class="data-table-wrap" style="display:block;width:100%"><table class="data-table" style="width:100%">
+
+  return `<div class="data-table-wrap"><table class="data-table" style="width:100%;table-layout:fixed">
+    ${colgroup}
     <thead><tr><th>${rowHeader}</th>${header}<th class="num" style="color:var(--accent)">${summaryLabel}</th></tr></thead>
     <tbody>${rows}</tbody>
   </table></div>`;
